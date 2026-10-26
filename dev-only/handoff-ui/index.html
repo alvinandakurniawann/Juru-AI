@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<!-- Alasan keputusan (R-31): gelap karena dipakai di lab redup; aksen satu untuk Kirim dan status ON;
+     system font agar jalan offline dari flashdisk; satu kolom karena satu-satunya fokus adalah chat;
+     tombol Suara nonaktif jujur sampai Fase 4 (TODO). -->
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>JURU</title>
+<style>
+:root{
+  --bg:#0b0e14; --card:#141926; --line:#262f45; --acc:#4f7cff;
+  --ghost:#202845; --txt:#e9edf6; --mut:#9aa3bd;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background-color:var(--bg); color:var(--txt);
+  background-image:linear-gradient(rgba(11,14,20,.90),rgba(11,14,20,.93)),
+    url('./assets/AIbackground.jpg');
+  background-size:cover;background-position:center;background-attachment:fixed;
+  font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+  font-size:14.5px; line-height:1.6;
+}
+.wrap{max-width:720px;margin:0 auto;padding:12px 12px 24px}
+/* Alasan keputusan (R-31): kaca hanya di header sticky (1 elemen, menandai lapisan navigasi);
+   panel memakai translusensi tanpa blur agar teks tetap tajam;
+   gerak hanya transisi hover dan kemunculan pesan (MOTION 2, hormati reduced-motion);
+   dial: ENERGY 2 / RHYTHM 1 / MOTION 2. */
+header{position:sticky;top:0;z-index:5;display:flex;align-items:center;
+  justify-content:space-between;gap:12px;padding:10px 12px;margin:0 -12px 12px;
+  background:rgba(11,14,20,.82);backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.logo{font-size:17px;font-weight:700;margin:0}
+.status{font-size:13px;font-weight:600;border:1px solid var(--line);border-radius:8px;
+  padding:8px 12px;min-height:44px;display:inline-flex;align-items:center;background:var(--card)}
+.status.on{color:var(--acc);border-color:var(--acc)}
+.status.off{color:var(--mut)}
+.dot{width:10px;height:10px;border-radius:50%;background:#5a6376;
+  display:inline-block;margin-right:8px;flex:none}
+.status.on .dot{background:#3ddc84}
+#chat{background:var(--card);border:1px solid var(--line);border-radius:12px;
+  min-height:280px;max-height:52vh;overflow-y:auto;padding:12px}
+.msg{margin:0 0 10px;padding:8px 10px;border-radius:8px;background:var(--bg);
+  border:1px solid var(--line);overflow-wrap:break-word;
+  animation:msgin .25s ease-out}
+@keyframes msgin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.msg.me{border-color:var(--acc);background:#1a2340;margin-left:48px}
+.msg.agent{margin-right:48px}
+.msg .who{font-size:12px;color:var(--mut);margin-bottom:2px}
+.msg .body p{margin:6px 0}
+.msg .body pre{background:#0b0e14;border:1px solid var(--line);border-radius:8px;
+  padding:8px 10px;overflow-x:auto;font-family:Consolas,"Courier New",monospace;font-size:13px}
+.msg .body code{font-family:Consolas,"Courier New",monospace;font-size:13px;background:#0b0e14;
+  border:1px solid var(--line);border-radius:4px;padding:0 4px}
+.msg .body pre code{background:none;border:none;padding:0}
+.msg .body a{color:var(--acc)}
+.artifacts{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.artifact{display:flex;align-items:center;gap:10px;border:1px solid var(--line);
+  border-radius:8px;padding:8px 10px;background:#0f1524}
+.artifact img{max-width:120px;max-height:90px;border:1px solid var(--line);
+  border-radius:8px;margin-top:0}
+.artifact .an{flex:1;min-width:0;overflow-wrap:anywhere}
+.artifact .an small{color:var(--mut);display:block}
+.msg ul{margin:6px 0 2px;padding-left:20px}
+.msg ol.steps{margin:6px 0 2px;padding-left:22px}
+.msg ol.steps li{margin-bottom:6px}
+.msg ol.steps li.st{list-style:none;margin-left:-22px;color:var(--mut)}
+.msg img{max-width:100%;border:1px solid var(--line);border-radius:8px;margin-top:6px}
+.empty{color:var(--mut)}
+.empty code{font-family:Consolas,"Courier New",monospace;font-size:13px;color:var(--txt)}
+.typing{color:var(--mut);font-style:italic}
+.error{border:1px solid #b04a4a;background:#1d1216;border-radius:8px;padding:8px 10px;margin:0 0 10px}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+button{
+  font:inherit;color:var(--txt);background:var(--ghost);
+  border:1px solid var(--line);border-radius:8px;
+  min-height:44px;padding:10px 14px;cursor:pointer;
+  transition:background-color .18s,border-color .18s,transform .18s;
+}
+button:hover:not(:disabled){transform:translateY(-1px);border-color:var(--acc)}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+button.primary{background:var(--acc);color:#0b0e14;font-weight:700;border-color:var(--acc)}
+button:disabled{opacity:.55;cursor:not-allowed}
+button.active{border-color:var(--acc);color:var(--acc)}
+input[type=range]{flex:1;min-height:44px;accent-color:var(--acc);min-width:120px}
+.chips button{border-radius:8px}
+form.send{display:flex;gap:8px;margin-top:4px;align-items:flex-end}
+textarea{flex:1;min-width:0;font:inherit;color:var(--txt);background:var(--bg);
+  border:1px solid var(--line);border-radius:8px;min-height:44px;padding:10px 12px;
+  resize:none;line-height:1.6}
+details.pad{border:1px solid var(--line);border-radius:12px;background:var(--card);
+  padding:4px 12px 12px;margin:12px 0}
+details.pad summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600}
+#history{display:none;border:1px solid var(--line);border-radius:12px;background:var(--card);
+  padding:10px 12px;margin:12px 0;max-height:30vh;overflow-y:auto}
+#history{background:rgba(20,25,38,.92)}
+#live{display:none;border:1px solid var(--acc);border-radius:12px;
+  padding:10px 12px;margin-bottom:12px;background:var(--card)}
+#live.open{display:block}
+#live .lt{font-weight:700;margin-bottom:4px}
+#history.open{display:block}
+#sched{display:none;border:1px solid var(--line);border-radius:12px;background:rgba(20,25,38,.92);
+  padding:10px 12px;margin:12px 0}
+#sched.open{display:block}
+#sched h2{font-size:15px;margin:4px 0 8px}
+#sched form{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+#sched input[type=text]{flex:1 1 200px}
+#sched input[type=datetime-local],#sched input[type=number],#sched select{
+  font:inherit;color:var(--txt);background:var(--bg);border:1px solid var(--line);
+  border-radius:8px;min-height:44px;padding:10px}
+#convoSel{font:inherit;color:var(--txt);background:var(--bg);
+  border:1px solid var(--line);border-radius:8px;min-height:44px;
+  padding:10px;flex:1;min-width:0}
+.task{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);
+  padding:8px 0;overflow-wrap:anywhere}
+.task span{flex:1}
+.task .off{color:var(--mut)}
+#history table{width:100%;border-collapse:collapse;font-size:13px}
+#history td,#history th{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left;
+  vertical-align:top;overflow-wrap:anywhere}
+.mono{font-family:Consolas,"Courier New",monospace;font-size:13px}
+footer{color:var(--mut);font-size:12.5px;margin-top:16px}
+@media (max-width:420px){ .wrap{padding:8px 8px 20px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1 class="logo">JURU</h1>
+    <span id="bridge" class="status off" role="status"><span class="dot" aria-hidden="true"></span><span id="bridgeTxt">Bridge: memeriksa...</span></span>
+  </header>
+
+  <main>
+    <div id="live" role="status"></div>
+    <div class="row" aria-label="Percakapan tersimpan">
+      <select id="convoSel" aria-label="Pilih percakapan"></select>
+      <button type="button" id="btnNew">Baru</button>
+      <button type="button" id="btnRename">Ganti nama</button>
+      <button type="button" id="btnDel">Hapus</button>
+    </div>
+    <div id="chat" aria-live="polite" aria-label="Percakapan"></div>
+
+    <div class="row chips" aria-label="Perintah cepat">
+      <button type="button" data-cmd="Buka Notepad dan ketik Halo Dunia">Buka Notepad</button>
+      <button type="button" data-cmd="Ambil screenshot dan verifikasi">Screenshot</button>
+      <button type="button" data-cmd="Buka browser dan cari AI agent">Cari AI agent</button>
+    </div>
+
+    <details class="pad">
+      <summary>Panel manual (tanpa AI, jalan offline)</summary>
+      <div class="row">
+        <button type="button" id="btnShot">Ambil screenshot</button>
+        <button type="button" id="btnNote">Buka Notepad</button>
+      </div>
+      <p class="empty">Panel ini memanggil tool langsung. Berguna saat API key belum diisi.</p>
+    </details>
+
+    <div class="row" role="toolbar" aria-label="Alat">
+      <button type="button" id="btnTest">Tes API</button>
+      <button type="button" id="btnSave">Unduh chat</button>
+      <button type="button" id="btnReport">Laporan PDF</button>
+      <button type="button" id="btnSched">Jadwal</button>
+      <button type="button" id="btnHist">Jejak</button>
+      <button type="button" id="btnStop" disabled>Stop</button>
+      <button type="button" id="btnVoice">Suara</button>
+    </div>
+
+    <div class="row" role="toolbar" aria-label="Jendela aplikasi">
+      <button type="button" id="btnTop" title="Selalu di depan (mode aplikasi Desktop)">📌 Depan: mati</button>
+      <input type="range" id="opRange" min="30" max="100" value="100" step="5"
+        aria-label="Transparansi jendela (mode aplikasi Desktop)"
+        title="Transparansi jendela (mode aplikasi Desktop)">
+    </div>
+
+    <div id="history" aria-label="Riwayat aksi"></div>
+
+    <div id="sched" aria-label="Jadwal">
+      <h2>Jadwal</h2>
+      <div id="tasks"><p class="empty">Belum ada jadwal. Isi form di bawah untuk menambah.</p></div>
+      <form id="taskForm">
+        <input type="text" id="taskMsg" placeholder="Perintah, misal: Ambil screenshot"
+          aria-label="Perintah terjadwal" required>
+        <select id="taskKind" aria-label="Jenis jadwal">
+          <option value="once">Sekali pada jam...</option>
+          <option value="every">Tiap N menit</option>
+        </select>
+        <input type="datetime-local" id="taskAt" aria-label="Waktu jalan">
+        <input type="number" id="taskEvery" min="1" value="60" aria-label="Tiap berapa menit"
+          style="display:none">
+        <button type="submit" class="primary">Simpan jadwal</button>
+      </form>
+      <p class="empty">Catatan: jadwal jalan selama backend hidup. Internet hanya perlu untuk perintah AI.</p>
+    </div>
+
+    <form class="send" id="form">
+      <textarea id="input" rows="2" placeholder="Masukkan perintah... (Enter kirim, Shift+Enter baris baru)"
+        aria-label="Masukkan perintah"></textarea>
+      <button type="submit" class="primary" id="btnSend">Kirim</button>
+    </form>
+  </main>
+
+  <footer>
+    <p>JURU chat UI v2: teks format + kartu file/gambar + unduhan. Colok flashdisk, klik Jalankan-JURU, pakai, cabut tanpa jejak. Key API tersimpan di file .env milikmu.</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+var chat=document.getElementById("chat"),
+  input=document.getElementById("input"),
+  form=document.getElementById("form"),
+  bridge=document.getElementById("bridge"),
+  btnStop=document.getElementById("btnStop"),
+  hist=document.getElementById("history"),
+  ctl=null, log=[], lastText="";
+function setLast(t){lastText=t;}
+
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+var LABEL={open_app:"Buka aplikasi",type_text:"Ketik teks",click:"Klik",
+  open_url:"Buka tautan",open_browser:"Buka browser",screenshot:"Screenshot",
+  read_file:"Baca file",create_file:"Buat file",create_docx:"Buat dokumen",create_xlsx:"Buat spreadsheet",open_file:"Buka file",list_dir:"Lihat folder",make_dir:"Buat folder",  rename_file:"Ganti nama",move_file:"Pindah file",wait:"Tunggu",start_search:"Cari Start",youtube_play:"Putar YouTube",youtube_oldest:"Buka video terlama",
+  delete_file:"Hapus file",run_shell:"Shell",hotkey:"Tekan tombol",focus_window:"Fokus jendela",web_fetch:"Baca halaman",
+  web_search:"Cari web",research:"Riset"};
+function md(s){
+  var t=esc(s||""),i,parts=t.split("```"),out="";
+  for(i=0;i<parts.length;i++){
+    if(i%2===1){out+="<pre><code>"+parts[i].replace(/^<br>/,"")+"</code></pre>";}
+    else{
+      var p=parts[i].replace(/`([^`<]+)`/g,"<code>$1</code>")
+        .replace(/\*\*([^*<]+)\*\*/g,"<b>$1</b>");
+      p=p.replace(/(https?:\/\/[^\s<]+)/g,"<a href='$1' target='_blank' rel='noopener'>$1</a>");
+      out+=p.replace(/\n/g,"<br>");
+    }
+  }
+  return "<p>"+out+"</p>";
+}
+function renderArtifacts(box,arts){
+  (arts||[]).forEach(function(a){
+    if(!a||!a.url||!a.name)return;
+    var d=document.createElement("div");d.className="artifact";
+    var inner="<div class='an'><b>"+esc(a.label||a.name)+"</b><small>"+esc(a.name)+"</small></div>";
+    if(a.kind==="image"){
+      inner="<a href='"+esc(a.url)+"' target='_blank' rel='noopener'><img src='"+esc(a.url)+"' alt='"+esc(a.name)+"' loading='lazy'></a>"+inner;
+    }
+    inner+="<a href='"+esc(a.url)+"' download='"+esc(a.name)+"'><button type='button'>Unduh</button></a>";
+    d.innerHTML=inner;box.appendChild(d);
+  });
+}
+function renderSteps(box,steps){
+  var html="",n=0,i,s,tool,res,m;
+  for(i=0;i<steps.length;i++){
+    s=steps[i];
+    if(s.indexOf(" -> ")>-1){
+      n++;
+      tool=s.split(" -> ",1)[0];res=s.slice(tool.length+4);
+      html+="<li><b>"+(n)+". "+esc(LABEL[tool]||tool)+"</b> "+esc(res);
+      m=res.match(/shot-\d{8}-\d{6}\.png/);
+      if(m){html+="<br><img src='/api/shot?name="+m[0]+"' alt='Hasil screenshot langkah "+n+"' loading='lazy'>";}
+      html+="</li>";
+    }else{
+      html+="<li class='st'>"+esc(s)+"</li>";
+    }
+  }
+  box.innerHTML=html?"<ol class='steps'>"+html+"</ol>":"";
+}
+function renderReply(box,j,origText){
+  box.innerHTML="<div class='body'>"+md(j.reply||"Selesai.")+"</div>";
+  var d=document.createElement("div");box.appendChild(d);renderSteps(d,j.steps||[]);
+  var ad=document.createElement("div");ad.className="artifacts";box.appendChild(ad);
+  renderArtifacts(ad,j.artifacts||[]);
+  if(j.needs_confirm){
+    box.innerHTML+='<div class="row"><button type="button" data-ok="1">Ya, jalankan</button></div>';
+    box.querySelector("[data-ok]").onclick=function(){confirmRun(j.pending);};
+  }
+  if(j.retry&&(origText||lastText)){
+    var rt=origText||lastText;
+    box.innerHTML+='<div class="row"><button type="button" data-re="1">Coba lagi</button></div>';
+    box.querySelector("[data-re]").onclick=function(){send(rt);};
+  }
+}
+function add(who,text,cls){
+  var d=document.createElement("div");
+  d.className="msg "+(cls||"");
+  d.innerHTML='<div class="who">'+esc(who)+'</div><div>'+text+'</div>';
+  chat.appendChild(d); chat.scrollTop=chat.scrollHeight;
+  log.push(who+": "+chat.lastChild.lastChild.textContent);
+  return d;
+}
+function showEmpty(){
+  if(chat.children.length) return;
+  var d=document.createElement("div");
+  d.className="msg";
+  d.innerHTML='<div class="who">Sistem</div><div class="empty">Halo, saya JURU. '+
+    'Belum ada perintah. Colok flashdisk, jalankan '+
+    '<code>Jalankan-JURU.bat</code> (EXE, tanpa Python), lalu tulis perintah di bawah. '+
+    'Contoh: Buka Notepad dan ketik Halo Dunia. Balasan kini rasa chatbot: teks format, '+
+    'link otomatis, plus kartu file/gambar yang bisa diunduh.</div>';
+  chat.appendChild(d);
+}
+async function health(){
+  try{
+    var ctl=new AbortController(),to=setTimeout(function(){ctl.abort();},5000);
+    var r=await fetch("/api/health",{cache:"no-store",signal:ctl.signal});
+    clearTimeout(to);
+    var j=await r.json();
+    var txt=document.getElementById("bridgeTxt");
+    if(j&&j.ok){txt.textContent="Bridge: ON";bridge.className="status on";}
+    else{txt.textContent="Bridge: OFF";bridge.className="status off";}
+  }catch(e){
+    document.getElementById("bridgeTxt").textContent="Bridge: OFF";
+    bridge.className="status off";
+  }
+}
+async function send(text){
+  if(!text) return;
+  // Perintah slash ala koma /bash: jalan lokal tanpa AI.
+  if(text.charAt(0)==="/"){
+    var cmd=text.slice(1).trim().split(/\s+/)[0].toLowerCase();
+    add("Kamu",esc(text),"me");
+    if(cmd==="screenshot"){direct("screenshot",{});return;}
+    if(cmd==="notepad"){direct("open_app",{app:"notepad"});return;}
+    if(cmd==="tasks"||cmd==="jadwal"){
+      var p=document.getElementById("sched");
+      p.classList.add("open");loadTasks();
+      add("Sistem","Panel Jadwal dibuka.");return;
+    }
+    if(cmd==="jejak"||cmd==="history"){document.getElementById("btnHist").click();return;}
+    add("Sistem","Perintah slash: /screenshot /notepad /tasks /jejak /help");
+    return;
+  }
+  setLast(text);
+  add("Kamu",esc(text),"me");
+  var t=add("Agen",'<span class="typing">Memahami perintah...</span>');
+  t.classList.add("agent");
+  btnStop.disabled=false;
+  ctl=new AbortController();
+  var live=null,liveSteps=[],liveOk=false;
+  function liveRender(){
+    var d=document.createElement("div");
+    renderSteps(d,liveSteps);
+    t.lastChild.innerHTML='<span class="typing">Menjalankan...</span>';
+    t.lastChild.appendChild(d);
+  }
+  try{
+    live=new EventSource("/api/events");
+    live.onmessage=function(e){
+      try{
+        liveSteps.push(JSON.parse(e.data));
+        liveOk=true;liveRender();
+      }catch(err){}
+    };
+    live.onerror=function(){if(live){live.close();live=null;}};
+  }catch(e){live=null;}
+  var poll=setInterval(async function(){
+    if(liveOk)return;
+    try{
+      var pr=await fetch("/api/progress",{cache:"no-store",signal:ctl.signal});
+      var pj=await pr.json();
+      if(pj&&(pj.steps||[]).length){
+        liveSteps=pj.steps;liveRender();
+      }
+    }catch(e){}
+  },2000);
+  try{
+    var r=await fetch("/api/chat",{method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({message:text,convo_id:convoId}),signal:ctl.signal});
+    var j=await r.json();
+    clearInterval(poll);if(live){live.close();live=null;}
+    if(j.convo_id&&j.convo_id!==convoId){convoId=j.convo_id;loadConvos();}
+    renderReply(t.lastChild,j,text);
+  }catch(e){
+    clearInterval(poll);if(live){live.close();live=null;}
+    var msg=(e&&e.name==="AbortError")?"Dihentikan atas permintaanmu.":
+      "Jaringan atau server bermasalah. Cek Start-Agent masih jalan, ganti key di file .env, atau coba hotspot lain.";
+    t.lastChild.innerHTML='<div class="error">'+esc(msg)+'</div>';
+  }
+  btnStop.disabled=true; ctl=null;
+}
+var convoId="",convoStamp="";
+async function loadConvos(){
+  var sel=document.getElementById("convoSel");
+  try{
+    var r=await fetch("/api/convos",{cache:"no-store"});var j=await r.json();
+    var items=j.items||[];
+    sel.innerHTML="";
+    if(!items.length){
+      var o=document.createElement("option");o.value="";o.textContent="(belum ada)";
+      sel.appendChild(o);return;
+    }
+    items.sort(function(a,b){return (b.updated||"")<(a.updated||"")?-1:1;});
+    items.forEach(function(c){
+      var o=document.createElement("option");o.value=c.id;
+      o.textContent=c.title+" ("+c.n+")";sel.appendChild(o);
+    });
+    if(!convoId||!items.some(function(c){return c.id===convoId;})){
+      convoId=items[0].id;
+    }
+    sel.value=convoId;convoStamp="";
+  }catch(e){}
+}
+async function loadConvo(announce){
+  if(!convoId)return;
+  try{
+    var r=await fetch("/api/convo?id="+encodeURIComponent(convoId),{cache:"no-store"});
+    var j=await r.json();
+    if(j.error||j.updated===convoStamp)return;
+    convoStamp=j.updated;
+    chat.innerHTML="";log=[];
+    (j.messages||[]).forEach(function(m){
+      if(m.who==="Kamu"){add("Kamu",esc(m.text),"me");}
+      else{
+        var d=add("Agen","");
+        d.classList.add("agent");
+        d.lastChild.innerHTML="<div class='body'>"+md(m.text||"")+"</div>";
+        if(m.steps&&m.steps.length){
+          var s=document.createElement("div");d.lastChild.appendChild(s);
+          var keep=renderStepsHTML(m.steps);s.innerHTML=keep;
+        }
+        if(m.artifacts&&m.artifacts.length){
+          var ad=document.createElement("div");ad.className="artifacts";
+          d.lastChild.appendChild(ad);renderArtifacts(ad,m.artifacts);
+        }
+      }
+    });
+    if(announce)add("Sistem","Percakapan dibuka: "+(j.title||""));
+  }catch(e){}
+}
+function renderStepsHTML(steps){
+  var d=document.createElement("div");renderSteps(d,steps||[]);
+  return d.innerHTML;
+}
+document.getElementById("convoSel").addEventListener("change",function(e){
+  convoId=e.target.value;loadConvo(true);
+});
+document.getElementById("btnNew").addEventListener("click",function(){
+  convoId="";chat.innerHTML="";log=[];showEmpty();loadConvos();
+});
+document.getElementById("btnRename").addEventListener("click",async function(){
+  if(!convoId)return;
+  var t=prompt("Nama baru:",document.getElementById("convoSel").selectedOptions[0].text);
+  if(!t)return;
+  await fetch("/api/convos",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({action:"rename",id:convoId,title:t})});
+  loadConvos();
+});
+document.getElementById("btnDel").addEventListener("click",async function(){
+  if(!convoId||!confirm("Hapus percakapan ini dari semua perangkat?"))return;
+  await fetch("/api/convos",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({action:"delete",id:convoId})});
+  convoId="";chat.innerHTML="";log=[];showEmpty();loadConvos();
+});
+setInterval(function(){
+  if(ctl||!convoId)return;
+  if(chat.querySelector("[data-ok],[data-re]"))return;
+  loadConvo(false);
+},5000);
+async function confirmRun(pending){
+  if(!pending) return;
+  var t=add("Agen",'<span class="typing">Melanjutkan rencana...</span>');
+  try{
+    var r=await fetch("/api/chat",{method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({message:"",resume:pending,confirmed_step:pending.index})});
+    var j=await r.json();
+    renderReply(t.lastChild,j);
+  }catch(e){t.lastChild.textContent="Gagal menjalankan. Coba lagi.";}
+}
+async function direct(action,args){
+  var t=add("Agen",'<span class="typing">Menjalankan tindakan...</span>');
+  try{
+    var body=Object.assign({action:action,confirm:true},args||{});
+    var r=await fetch("/api/act",{method:"POST",
+      headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    var j=await r.json();
+    if(j.needs_confirm){t.lastChild.textContent="Butuh konfirmasi untuk aksi ini.";}
+    else{t.lastChild.textContent=j.message||"Selesai.";}
+  }catch(e){t.lastChild.innerHTML='<div class="error">Server tidak merespons. Pastikan backend jalan.</div>';}
+}
+form.addEventListener("submit",function(e){
+  e.preventDefault();
+  var v=input.value.trim(); input.value="";autosize();
+  send(v); input.focus();
+});
+function autosize(){input.style.height="auto";
+  input.style.height=Math.min(input.scrollHeight,160)+"px";}
+input.addEventListener("input",autosize);
+input.addEventListener("keydown",function(e){
+  if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();form.requestSubmit();}
+});
+document.querySelectorAll("[data-cmd]").forEach(function(b){
+  b.addEventListener("click",function(){send(b.getAttribute("data-cmd"));});
+});
+document.getElementById("btnShot").addEventListener("click",function(){direct("screenshot",{});});
+document.getElementById("btnNote").addEventListener("click",function(){direct("open_app",{app:"notepad"});});
+document.getElementById("btnTest").addEventListener("click",async function(){
+  var t=add("Agen",'<span class="typing">Memeriksa API...</span>');
+  try{
+    var r=await fetch("/api/health",{cache:"no-store"}); var j=await r.json();
+    t.lastChild.textContent=j.ok?("Bridge ON. LLM: "+(j.llm||"tidak dikonfigurasi")+"."):
+      "Bridge OFF. Jalankan Start-Agent dulu.";
+  }catch(e){t.lastChild.textContent="Bridge OFF. Jalankan Start-Agent dulu.";}
+});
+document.getElementById("btnSave").addEventListener("click",function(){
+  if(!log.length){add("Sistem","Belum ada percakapan untuk diunduh.");return;}
+  var blob=new Blob([log.join("\n")],{type:"text/plain"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download="juru-chat.txt"; a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);},2000);
+});
+document.getElementById("btnReport").addEventListener("click",function(){
+  var nodes=chat.querySelectorAll(".msg");
+  if(!nodes.length){add("Sistem","Belum ada percakapan untuk dilaporkan.");return;}
+  var body="";
+  nodes.forEach(function(n){
+    var html=n.innerHTML.replace(/<button[^>]*>.*?<\/button>/g,"");
+    body+="<div class='rmsg'>"+html+"</div>";
+  });
+  var w=window.open("","_blank");
+  w.document.write("<html lang='id'><head><meta charset='utf-8'><title>Laporan JURU</title>"+
+    "<style>body{font-family:'Segoe UI',system-ui,sans-serif;max-width:800px;margin:24px auto;"+
+    "color:#111;line-height:1.6}.rmsg{border:1px solid #ccc;border-radius:8px;padding:10px;margin:10px 0}"+
+    ".who{font-size:12px;color:#555}img{max-width:100%;border:1px solid #ccc;margin-top:6px}"+
+    "h1{font-size:20px}@media print{.noprint{display:none}}</style></head><body>"+
+    "<h1>Laporan JURU</h1><p>Diekspor: "+esc(new Date().toLocaleString("id-ID"))+"</p>"+
+    body+"<p class='noprint'><button onclick='window.print()'>Cetak / Simpan PDF</button></p>"+
+    "</body></html>");
+  w.document.close();
+});
+document.getElementById("btnSched").addEventListener("click",function(){
+  var p=document.getElementById("sched");
+  p.classList.toggle("open");
+  if(p.classList.contains("open"))loadTasks();
+});
+var taskKind=document.getElementById("taskKind"),
+  taskAt=document.getElementById("taskAt"),
+  taskEvery=document.getElementById("taskEvery");
+taskKind.addEventListener("change",function(){
+  var every=taskKind.value==="every";
+  taskAt.style.display=every?"none":"";
+  taskEvery.style.display=every?"":"none";
+});
+async function loadTasks(){
+  var box=document.getElementById("tasks");
+  try{
+    var r=await fetch("/api/tasks",{cache:"no-store"}); var j=await r.json();
+    if(!(j.items||[]).length){
+      box.innerHTML="<p class='empty'>Belum ada jadwal. Isi form di bawah untuk menambah.</p>";return;
+    }
+    box.innerHTML="";
+    j.items.forEach(function(t){
+      var d=document.createElement("div");d.className="task";
+      var info=t.message+" ("+(t.kind==="once"?("sekali "+t.at):("tiap "+t.every+" mnt"))+
+        ", jalan "+(t.runs||0)+"x)";
+      d.innerHTML="<span class='"+(t.enabled?"":"off")+"'></span>";
+      d.firstChild.textContent=(t.enabled?"":"[nonaktif] ")+info;
+      var b1=document.createElement("button");b1.type="button";
+      b1.textContent=t.enabled?"Matikan":"Nyalakan";
+      b1.onclick=function(){taskAction(t.id,"toggle");};
+      var b2=document.createElement("button");b2.type="button";b2.textContent="Hapus";
+      b2.onclick=function(){taskAction(t.id,"delete");};
+      d.appendChild(b1);d.appendChild(b2);box.appendChild(d);
+    });
+  }catch(e){box.innerHTML="<p class='empty'>Jadwal tak terbaca. Pastikan backend jalan.</p>";}
+}
+async function taskAction(id,action){
+  await fetch("/api/tasks",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({action:action,id:id})});
+  loadTasks();
+}
+document.getElementById("taskForm").addEventListener("submit",async function(e){
+  e.preventDefault();
+  var msg=document.getElementById("taskMsg").value.trim();if(!msg)return;
+  var body={action:"create",message:msg,kind:taskKind.value};
+  if(taskKind.value==="every"){body.every=parseInt(taskEvery.value,10)||60;}
+  else{if(!taskAt.value){add("Sistem","Pilih jam jalan untuk jadwal sekali.");return;}
+    body.at=taskAt.value;}
+  var r=await fetch("/api/tasks",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(body)});
+  var j=await r.json();
+  if(j.error){add("Sistem",j.error);return;}
+  document.getElementById("taskMsg").value="";
+  add("Sistem","Jadwal tersimpan, id "+j.id+".");
+  loadTasks();
+});
+(function voice(){
+  var btn=document.getElementById("btnVoice"),
+    SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){
+    btn.disabled=true;btn.title="Browser ini tidak mendukung input suara. Pakai Chrome atau Edge.";
+    return;
+  }
+  var rec=new SR(),on=false;
+  rec.lang="id-ID";rec.interimResults=false;rec.maxAlternatives=1;
+  rec.onresult=function(e){
+    var t=e.results[0][0].transcript;
+    input.value=t;autosize();input.focus();
+    add("Sistem","Terdengar: "+t+" Tekan Kirim untuk menjalankan.");
+  };
+  rec.onend=function(){on=false;btn.textContent="Suara";};
+  rec.onerror=function(){on=false;btn.textContent="Suara";
+    add("Sistem","Suara gagal. Cek izin mic dan koneksi internet.");};
+  btn.addEventListener("click",function(){
+    if(!window.isSecureContext){
+      add("Sistem","Mic diblokir browser karena halaman dibuka via HTTP biasa. "+
+        "Solusi: di Chrome HP buka chrome://flags, cari 'Insecure origins treated as secure', "+
+        "isi dengan alamat server ini, lalu relaunch. Atau ketik manual.");
+      return;
+    }
+    if(on){rec.stop();return;}
+    try{rec.start();on=true;btn.textContent="Mendengar...";}
+    catch(e){add("Sistem","Mic tidak bisa dibuka. Cek izin browser.");}
+  });
+})();
+document.getElementById("btnHist").addEventListener("click",async function(){
+  try{
+    var r=await fetch("/api/history",{cache:"no-store"}); var j=await r.json();
+    var rows=(j.items||[]).map(function(h){
+      return "<tr><td class='mono'>"+esc(h.time||"")+"</td><td>"+esc(h.action||"")+
+        "</td><td>"+esc(h.result||"")+"</td></tr>";
+    }).join("");
+    hist.innerHTML="<table><tr><th>Waktu</th><th>Aksi</th><th>Hasil</th></tr>"+
+      (rows||"<tr><td colspan='3'>Belum ada aksi tercatat.</td></tr>")+"</table>";
+    hist.classList.toggle("open");
+  }catch(e){add("Sistem","Riwayat tidak bisa dibaca. Pastikan backend jalan.");}
+});
+btnStop.addEventListener("click",function(){if(ctl)ctl.abort();});
+var uiState={always_on_top:false,opacity:100};
+function paintUI(){
+  var b=document.getElementById("btnTop");
+  b.textContent=uiState.always_on_top?"📌 Depan: nyala":"📌 Depan: mati";
+  b.classList.toggle("active",!!uiState.always_on_top);
+  document.getElementById("opRange").value=uiState.opacity;
+}
+async function loadUI(){
+  try{
+    var r=await fetch("/api/ui",{cache:"no-store"});var j=await r.json();
+    if(typeof j.always_on_top==="boolean")uiState.always_on_top=j.always_on_top;
+    if(j.opacity)uiState.opacity=j.opacity;
+    paintUI();
+  }catch(e){}
+}
+async function saveUI(patch){
+  try{
+    var r=await fetch("/api/ui",{method:"POST",
+      headers:{"Content-Type":"application/json"},body:JSON.stringify(patch)});
+    var j=await r.json();
+    if(typeof j.always_on_top==="boolean")uiState.always_on_top=j.always_on_top;
+    if(j.opacity)uiState.opacity=j.opacity;
+  }catch(e){Object.assign(uiState,patch);}
+  paintUI();
+}
+document.getElementById("btnTop").addEventListener("click",function(){
+  saveUI({always_on_top:!uiState.always_on_top});
+});
+document.getElementById("opRange").addEventListener("change",function(e){
+  saveUI({opacity:parseInt(e.target.value,10)||100});
+});
+setInterval(async function(){
+  var box=document.getElementById("live");
+  try{
+    var r=await fetch("/api/progress",{cache:"no-store"});
+    var j=await r.json();
+    if(j&&j.active&&(j.steps||[]).length){
+      var last=j.steps[j.steps.length-1];
+      box.innerHTML="<div class='lt'>Agen sedang bekerja...</div><div>"+esc(last)+"</div>";
+      box.classList.add("open");
+    }else{box.classList.remove("open");}
+  }catch(e){}
+},3000);
+showEmpty(); health(); setInterval(health,15000); loadConvos(); loadUI();
+})();
+</script>
+</body>
+</html>
