@@ -1,0 +1,2600 @@
+<!DOCTYPE html>
+<!--
+  JURU — Portable Personal AI Agent (Desktop UI 480x800)
+  Dial: ENERGY 2 / RHYTHM 1 / MOTION 2
+  Aturan: Dark theme (#0b0e14, #141926, #262f45, aksen #4f7cff), Segoe UI,
+  100% offline dari flashdisk tanpa CDN/foto stok, satu focal point per layar,
+  target sentuh min 44px, tanpa tombol mati.
+-->
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=480, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>JURU — Agen AI & Kendali PC Portabel</title>
+<style>
+:root {
+  --bg: #0b0e14;
+  --card: #141926;
+  --line: #262f45;
+  --acc: #4f7cff;
+  --ghost: #1a2133;
+  --txt: #e9edf6;
+  --mut: #9aa3bd;
+  --err-bg: #1d1216;
+  --err-line: #b04a4a;
+  --warn-bg: #1f1a12;
+  --warn-line: #c98a2c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #06080c;
+  color: var(--txt);
+  font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Bingkai jendela aplikasi desktop Windows 480x800 */
+.app-window {
+  width: 100%;
+  max-width: 480px;
+  height: 100vh;
+  max-height: 800px;
+  margin: 0 auto;
+  background-color: var(--bg);
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (min-height: 804px) and (min-width: 484px) {
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .app-window {
+    height: 800px;
+    border-radius: 8px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+  }
+}
+
+/* Header Aplikasi Desktop */
+.win-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: var(--card);
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.brand-mark {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background-color: var(--acc);
+  flex-shrink: 0;
+}
+
+.brand-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.brand-sub {
+  font-size: 11.5px;
+  color: var(--mut);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.status-pill {
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0 10px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--bg);
+  color: var(--mut);
+  cursor: pointer;
+}
+
+.status-pill.on {
+  color: var(--txt);
+  border-color: var(--acc);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #6c758c;
+  flex-shrink: 0;
+}
+
+.status-pill.on .dot {
+  background-color: var(--acc);
+}
+
+/* Indikator Live "Agen sedang bekerja..." */
+#liveBanner {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: var(--card);
+  border-bottom: 1px solid var(--acc);
+  flex-shrink: 0;
+}
+
+#liveBanner.open {
+  display: flex;
+}
+
+.live-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.live-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--acc);
+}
+
+.live-step {
+  font-size: 12px;
+  color: var(--txt);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Navigasi Layar (1 Focal Point per Layar) */
+.nav-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  padding: 6px 10px;
+  background-color: var(--bg);
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.nav-tab {
+  min-height: 44px;
+  padding: 6px 4px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background-color: transparent;
+  color: var(--mut);
+  font-size: 12.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+
+.nav-tab:hover {
+  background-color: var(--card);
+  color: var(--txt);
+}
+
+.nav-tab[aria-selected="true"] {
+  background-color: var(--card);
+  border-color: var(--acc);
+  color: var(--txt);
+}
+
+.badge-count {
+  font-size: 11px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background-color: var(--ghost);
+  border: 1px solid var(--line);
+  color: var(--txt);
+}
+
+/* Area Konten Utama (Satu Layar Aktif) */
+.screen-host {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.screen {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  padding: 10px 12px;
+  overflow-y: auto;
+}
+
+.screen.active {
+  display: flex;
+}
+
+/* Elemen Form & Tombol Standar (Target Sentuh >= 44px) */
+button,
+input[type="text"],
+input[type="datetime-local"],
+input[type="number"],
+select,
+textarea {
+  font: inherit;
+  color: var(--txt);
+}
+
+button {
+  background-color: var(--ghost);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--acc);
+  transform: translateY(-1px);
+}
+
+button.primary {
+  background-color: var(--acc);
+  border-color: var(--acc);
+  color: #0b0e14;
+  font-weight: 700;
+}
+
+button.primary:hover:not(:disabled) {
+  background-color: #648dff;
+}
+
+button.danger {
+  border-color: var(--err-line);
+  background-color: var(--err-bg);
+  color: #ffd6d6;
+}
+
+button.active-toggle {
+  border-color: var(--acc);
+  color: var(--acc);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+input[type="text"],
+input[type="datetime-local"],
+input[type="number"],
+select {
+  background-color: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  min-height: 44px;
+  padding: 8px 10px;
+  width: 100%;
+}
+
+/* ==========================================
+   LAYAR 1: CHAT (FOKUS UTAMA)
+   ========================================== */
+.convo-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+#convoSel {
+  flex: 1;
+  min-width: 0;
+  background-color: var(--card);
+}
+
+.convo-rename-box {
+  display: none;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding: 8px;
+  background-color: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.convo-rename-box.open {
+  display: flex;
+}
+
+#chatBox {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background-color: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.msg {
+  padding: 9px 11px;
+  border-radius: 8px;
+  background-color: var(--bg);
+  border: 1px solid var(--line);
+  overflow-wrap: break-word;
+  animation: msgin 0.22s ease-out;
+}
+
+@keyframes msgin {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Bubble user kanan, agen kiri */
+.msg.me {
+  border-color: var(--acc);
+  background-color: #16203a;
+  margin-left: 36px;
+  align-self: flex-end;
+  width: calc(100% - 36px);
+}
+
+.msg.agent {
+  margin-right: 28px;
+  align-self: flex-start;
+  width: calc(100% - 28px);
+}
+
+.msg.system {
+  border-style: dashed;
+  width: 100%;
+}
+
+.msg-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: var(--mut);
+  margin-bottom: 4px;
+}
+
+.msg-body p {
+  margin: 4px 0;
+}
+
+.msg-body pre {
+  background-color: #080a0f;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 10px;
+  overflow-x: auto;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12.5px;
+  margin: 6px 0;
+}
+
+.msg-body code {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12.5px;
+  background-color: #080a0f;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 4px;
+}
+
+.msg-body pre code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.msg-body a {
+  color: var(--acc);
+  text-decoration: underline;
+}
+
+/* Kartu File / Gambar (Artifacts) */
+.artifacts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.artifact-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px;
+  background-color: var(--card);
+}
+
+.artifact-thumb-btn {
+  padding: 0;
+  min-width: 64px;
+  min-height: 48px;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: var(--bg);
+  flex-shrink: 0;
+}
+
+.artifact-thumb-btn img {
+  display: block;
+  width: 64px;
+  height: 48px;
+  object-fit: cover;
+}
+
+.artifact-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.artifact-title {
+  font-weight: 600;
+  font-size: 13px;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.artifact-name {
+  color: var(--mut);
+  font-size: 11.5px;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-link-download {
+  text-decoration: none;
+  display: inline-flex;
+}
+
+/* Ringkasan Langkah PC di dalam Balasan Chat */
+.step-timeline {
+  margin: 8px 0 2px;
+  padding: 8px 10px;
+  background-color: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.step-timeline-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--mut);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.steps-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12.5px;
+  list-style: none;
+}
+
+.steps-list li {
+  margin-bottom: 6px;
+}
+
+.steps-list li.step-note {
+  list-style: none;
+  margin-left: -18px;
+  color: var(--mut);
+}
+
+.shot-preview-btn {
+  display: block;
+  width: 100%;
+  padding: 4px;
+  margin-top: 6px;
+  background-color: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  text-align: left;
+}
+
+.shot-preview-btn img {
+  display: block;
+  width: 100%;
+  max-height: 150px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.shot-caption {
+  display: block;
+  font-size: 11.5px;
+  color: var(--mut);
+  margin-top: 4px;
+}
+
+/* LAYAR 3: APPROVAL GATE (Kartu Persetujuan Risiko Tinggi) */
+.approval-card {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--warn-line);
+  background-color: var(--warn-bg);
+}
+
+.approval-header {
+  font-weight: 700;
+  font-size: 13px;
+  color: #ffd280;
+  margin-bottom: 4px;
+}
+
+.approval-detail {
+  font-size: 12.5px;
+  color: var(--txt);
+  margin-bottom: 8px;
+  font-family: Consolas, "Courier New", monospace;
+  background-color: rgba(11, 14, 20, 0.65);
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+}
+
+.approval-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Bilah Slash & Chip Cepat di Bawah Chat */
+.quick-strip {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 8px 0 4px;
+  flex-shrink: 0;
+}
+
+.quick-strip button {
+  min-height: 44px;
+  padding: 6px 10px;
+  font-size: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Form Kirim Pesan */
+.composer {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+#inputCmd {
+  flex: 1;
+  min-width: 0;
+  background-color: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  min-height: 44px;
+  max-height: 110px;
+  padding: 10px;
+  resize: none;
+  line-height: 1.4;
+}
+
+/* ==========================================
+   LAYAR 2: JEJAK LANGKAH PC (TIMELINE)
+   ========================================== */
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.card-panel {
+  background-color: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.timeline-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.timeline-item {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px;
+  background-color: var(--bg);
+}
+
+.timeline-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.timeline-label {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--txt);
+}
+
+.timeline-time {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 11.5px;
+  color: var(--mut);
+}
+
+.timeline-res {
+  font-size: 12.5px;
+  color: var(--mut);
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================
+   LAYAR 4: JADWAL TUGAS
+   ========================================== */
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-item {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px;
+  background-color: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.task-cmd {
+  font-weight: 700;
+  font-size: 13.5px;
+  overflow-wrap: anywhere;
+}
+
+.task-cmd.off {
+  color: var(--mut);
+  text-decoration: line-through;
+}
+
+.task-meta {
+  font-size: 12px;
+  color: var(--mut);
+  margin-top: 2px;
+}
+
+.task-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mut);
+  margin-bottom: 2px;
+  display: block;
+}
+
+/* ==========================================
+   LAYAR 5 & 6: JENDELA & TOOLBAR ALAT
+   ========================================== */
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+input[type="range"] {
+  flex: 1;
+  min-height: 44px;
+  accent-color: var(--acc);
+  cursor: pointer;
+}
+
+/* State Box: Kosong, Loading, Error */
+.state-box {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px;
+  background-color: var(--bg);
+  color: var(--mut);
+  font-size: 13px;
+}
+
+.state-box.loading {
+  border-style: dashed;
+  color: var(--txt);
+}
+
+.state-box.error {
+  border-color: var(--err-line);
+  background-color: var(--err-bg);
+  color: #ffd6d6;
+}
+
+.state-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+/* Modal Lightbox Screenshot Penuh */
+.modal-backdrop {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background-color: rgba(11, 14, 20, 0.94);
+  z-index: 20;
+  flex-direction: column;
+  padding: 12px;
+}
+
+.modal-backdrop.open {
+  display: flex;
+}
+
+.modal-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.modal-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background-color: var(--card);
+  padding: 8px;
+}
+
+.modal-body img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.mono {
+  font-family: Consolas, "Courier New", monospace;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+</style>
+</head>
+<body>
+<div class="app-window" id="appWindow">
+
+  <!-- HEADER JENDELA DESKTOP -->
+  <header class="win-header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div>
+        <h1 class="brand-title">JURU</h1>
+        <div class="brand-sub">Agen AI &amp; Kendali PC Portabel via USB</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button type="button" id="btnPinQuick" title="Pasang jendela selalu di depan" aria-label="Toggle jendela selalu di depan">
+        📌 Depan: Mati
+      </button>
+      <button type="button" id="bridgePill" class="status-pill" title="Klik untuk menguji koneksi API lokal">
+        <span class="dot" aria-hidden="true"></span>
+        <span id="bridgeTxt">Memeriksa...</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- STATUS LIVE AGEN SEDANG BEKERJA -->
+  <div id="liveBanner" role="status" aria-live="polite">
+    <div class="live-info">
+      <div class="live-title">Agen sedang bekerja...</div>
+      <div class="live-step" id="liveStepTxt">Menyiapkan langkah eksekusi PC...</div>
+    </div>
+    <button type="button" id="btnStopLive" class="danger">Stop</button>
+  </div>
+
+  <!-- NAVIGASI WORKSPACE (SATU FOCAL POINT PER LAYAR) -->
+  <nav class="nav-tabs" role="tablist" aria-label="Layar Aplikasi JURU">
+    <button type="button" class="nav-tab" role="tab" id="tabBtnChat" aria-selected="true" aria-controls="screenChat" data-target="screenChat">
+      Chat
+    </button>
+    <button type="button" class="nav-tab" role="tab" id="tabBtnJejak" aria-selected="false" aria-controls="screenJejak" data-target="screenJejak">
+      Jejak PC <span class="badge-count" id="badgeJejak">0</span>
+    </button>
+    <button type="button" class="nav-tab" role="tab" id="tabBtnJadwal" aria-selected="false" aria-controls="screenJadwal" data-target="screenJadwal">
+      Jadwal <span class="badge-count" id="badgeJadwal">0</span>
+    </button>
+    <button type="button" class="nav-tab" role="tab" id="tabBtnAlat" aria-selected="false" aria-controls="screenAlat" data-target="screenAlat">
+      Jendela &amp; Alat
+    </button>
+  </nav>
+
+  <!-- HOST LAYAR -->
+  <main class="screen-host">
+
+    <!-- ==========================================
+         LAYAR 1: CHAT (FOKUS UTAMA) & APPROVAL GATE
+         ========================================== -->
+    <section id="screenChat" class="screen active" role="tabpanel" aria-labelledby="tabBtnChat">
+      <div class="convo-bar" aria-label="Percakapan tersimpan">
+        <select id="convoSel" aria-label="Pilih percakapan"></select>
+        <button type="button" id="btnNewConvo" title="Percakapan baru">Baru</button>
+        <button type="button" id="btnToggleRename" title="Ganti judul percakapan">Nama</button>
+        <button type="button" id="btnDelConvo" title="Hapus percakapan">Hapus</button>
+      </div>
+
+      <!-- Baris input ganti nama percakapan (tanpa ketergantungan prompt browser) -->
+      <div id="renameBox" class="convo-rename-box">
+        <input type="text" id="renameInput" placeholder="Masukkan judul percakapan baru" aria-label="Judul percakapan baru">
+        <button type="button" id="btnSaveRename" class="primary">Simpan nama</button>
+        <button type="button" id="btnCancelRename">Batal</button>
+      </div>
+
+      <!-- Kotak Pesan Chat -->
+      <div id="chatBox" aria-live="polite" aria-label="Daftar pesan percakapan"></div>
+
+      <!-- Bilah Perintah Cepat & Slash -->
+      <div class="quick-strip" aria-label="Perintah cepat dan slash">
+        <button type="button" data-cmd="Buka Notepad dan ketik Halo Dunia">Buka Notepad</button>
+        <button type="button" data-cmd="Ambil screenshot dan verifikasi">Screenshot</button>
+        <button type="button" data-cmd="Hapus file laporan-lama.tmp">Uji Hapus File (Risiko)</button>
+        <button type="button" data-cmd="/screenshot">/screenshot</button>
+        <button type="button" data-cmd="/tasks">/tasks</button>
+        <button type="button" data-cmd="/jejak">/jejak</button>
+        <button type="button" data-cmd="/help">/help</button>
+      </div>
+
+      <!-- Form Input Perintah -->
+      <form class="composer" id="chatForm">
+        <textarea id="inputCmd" rows="1" placeholder="Ketik perintah atau /help... (Enter kirim)" aria-label="Masukkan perintah"></textarea>
+        <button type="button" id="btnVoiceQuick" title="Input perintah suara" aria-label="Input suara">🎤</button>
+        <button type="submit" class="primary" id="btnSend">Kirim</button>
+      </form>
+    </section>
+
+    <!-- ==========================================
+         LAYAR 2: JEJAK LANGKAH PC (TIMELINE)
+         ========================================== -->
+    <section id="screenJejak" class="screen" role="tabpanel" aria-labelledby="tabBtnJejak">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Jejak Langkah PC</h2>
+          <div class="brand-sub">Urutan aksi PC dan tangkapan layar verifikasi</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button type="button" id="btnShotDirect">Ambil screenshot</button>
+          <button type="button" id="btnRefreshHist">Muat ulang</button>
+        </div>
+      </div>
+
+      <div id="jejakStateArea"></div>
+      <div id="jejakList" class="timeline-feed" aria-label="Timeline langkah PC"></div>
+    </section>
+
+    <!-- ==========================================
+         LAYAR 4: JADWAL TUGAS
+         ========================================== -->
+    <section id="screenJadwal" class="screen" role="tabpanel" aria-labelledby="tabBtnJadwal">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Jadwal Tugas</h2>
+          <div class="brand-sub">Berjalan selama aplikasi aktif (maks 5 paralel)</div>
+        </div>
+        <button type="button" id="btnRefreshTasks">Muat ulang</button>
+      </div>
+
+      <div class="card-panel">
+        <form id="taskForm" class="form-grid">
+          <div>
+            <label class="field-label" for="taskMsg">Perintah terjadwal</label>
+            <input type="text" id="taskMsg" placeholder="Contoh: Ambil screenshot dan verifikasi" required>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div>
+              <label class="field-label" for="taskKind">Frekuensi</label>
+              <select id="taskKind">
+                <option value="once">Sekali pada jam</option>
+                <option value="every">Tiap N menit</option>
+              </select>
+            </div>
+            <div id="wrapTaskAt">
+              <label class="field-label" for="taskAt">Waktu jalan</label>
+              <input type="datetime-local" id="taskAt">
+            </div>
+            <div id="wrapTaskEvery" style="display:none;">
+              <label class="field-label" for="taskEvery">Interval (menit)</label>
+              <input type="number" id="taskEvery" min="1" max="1440" value="30">
+            </div>
+          </div>
+          <button type="submit" class="primary">Simpan jadwal</button>
+        </form>
+      </div>
+
+      <div id="tasksStateArea"></div>
+      <div id="tasksList" class="task-list" aria-label="Daftar tugas terjadwal"></div>
+    </section>
+
+    <!-- ==========================================
+         LAYAR 5 & 6: JENDELA DESKTOP & TOOLBAR ALAT
+         ========================================== -->
+    <section id="screenAlat" class="screen" role="tabpanel" aria-labelledby="tabBtnAlat">
+      <!-- Kontrol Jendela Desktop -->
+      <div class="card-panel">
+        <h2 class="section-title" style="margin-bottom:4px;">Jendela Aplikasi Windows</h2>
+        <div class="brand-sub" style="margin-bottom:10px;">Pengaturan posisi jendela dan transparansi (30–100%)</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;">
+          <span>Posisi selalu di atas jendela lain</span>
+          <button type="button" id="btnTop">📌 Selalu di depan: Mati</button>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:12.5px;">
+            <label for="opRange">Transparansi jendela</label>
+            <span id="opValLabel" class="mono">100%</span>
+          </div>
+          <div class="slider-row">
+            <input type="range" id="opRange" min="30" max="100" value="100" step="5" aria-label="Transparansi jendela 30 sampai 100 persen">
+          </div>
+        </div>
+      </div>
+
+      <!-- Toolbar Utama -->
+      <div class="card-panel">
+        <h2 class="section-title" style="margin-bottom:8px;">Toolbar &amp; Ekspor</h2>
+        <div class="tool-grid" role="toolbar" aria-label="Alat utama">
+          <button type="button" id="btnTest">Tes API</button>
+          <button type="button" id="btnSave">Unduh chat</button>
+          <button type="button" id="btnReport">Laporan PDF</button>
+          <button type="button" id="btnHist">Buka Jejak</button>
+          <button type="button" id="btnStop" disabled>Stop Eksekusi</button>
+          <button type="button" id="btnVoice">Input Suara</button>
+        </div>
+      </div>
+
+      <!-- Panel Manual Offline -->
+      <div class="card-panel">
+        <h2 class="section-title" style="margin-bottom:4px;">Kendali Manual (Jalan Offline)</h2>
+        <div class="brand-sub" style="margin-bottom:10px;">Memanggil tool Windows langsung tanpa key DeepSeek</div>
+        <div class="tool-grid">
+          <button type="button" id="btnShotManual">Ambil screenshot</button>
+          <button type="button" id="btnNoteManual">Buka Notepad</button>
+        </div>
+      </div>
+
+      <!-- Penguji State Daftar (Memudahkan Verifikasi Kosong / Loading / Error) -->
+      <div class="card-panel">
+        <h2 class="section-title" style="margin-bottom:4px;">Informasi Mode &amp; Diagnostik State</h2>
+        <div class="brand-sub" style="margin-bottom:8px;">
+          Mode offline melayani perintah demo dan slash. Perintah bebas membutuhkan <code>DEEPSEEK_API_KEY</code> di berkas <code>config/.env</code>.
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <button type="button" id="btnSimEmpty">State Kosong</button>
+          <button type="button" id="btnSimLoading">State Loading</button>
+          <button type="button" id="btnSimError">State Error</button>
+          <button type="button" id="btnSimNormal">Pulihkan Data</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL PRATINJAU SCREENSHOT PENUH -->
+  <div id="shotModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-top">
+      <strong id="modalTitle" class="mono">Pratinjau Screenshot</strong>
+      <div style="display:flex;gap:6px;">
+        <a id="modalDownload" class="btn-link-download" href="#" download="screenshot.png">
+          <button type="button" class="primary">Unduh gambar</button>
+        </a>
+        <button type="button" id="btnCloseModal">Tutup (Esc)</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <img id="modalImg" src="" alt="Tangkapan layar penuh">
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* Label Bahasa Indonesia untuk setiap tool PC */
+  var LABEL = {
+    open_app: "Buka aplikasi",
+    type_text: "Ketik teks",
+    click: "Klik",
+    open_url: "Buka tautan",
+    open_browser: "Buka browser",
+    screenshot: "Screenshot",
+    read_file: "Baca file",
+    create_file: "Buat file",
+    create_docx: "Buat dokumen",
+    create_pdf: "Buat PDF",
+    create_pptx: "Buat presentasi",
+    create_xlsx: "Buat spreadsheet",
+    open_file: "Buka file",
+    list_dir: "Lihat folder",
+    make_dir: "Buat folder",
+    rename_file: "Ganti nama",
+    move_file: "Pindah file",
+    wait: "Tunggu",
+    start_search: "Cari Start",
+    youtube_play: "Putar YouTube",
+    youtube_oldest: "Buka video terlama",
+    delete_file: "Hapus file",
+    run_shell: "Shell",
+    hotkey: "Tekan tombol",
+    focus_window: "Fokus jendela",
+    web_fetch: "Baca halaman",
+    web_search: "Cari web",
+    research: "Riset"
+  };
+
+  /* SVG data URI lokal untuk pratinjau screenshot saat backend tidak aktif */
+  function makeMockShotSvg(titleText, timeText) {
+    var svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">' +
+      '<rect width="640" height="360" fill="#0b0e14"/>' +
+      '<rect x="16" y="16" width="608" height="328" rx="8" fill="#141926" stroke="#262f45" stroke-width="2"/>' +
+      '<rect x="16" y="16" width="608" height="34" rx="8" fill="#1a2133"/>' +
+      '<circle cx="36" cy="33" r="6" fill="#4f7cff"/>' +
+      '<text x="52" y="38" fill="#e9edf6" font-family="Segoe UI, sans-serif" font-size="14" font-weight="bold">Tangkapan Layar Desktop Windows — JURU</text>' +
+      '<text x="36" y="95" fill="#9aa3bd" font-family="Consolas, monospace" font-size="13">Berkas : ' + titleText + '</text>' +
+      '<text x="36" y="122" fill="#9aa3bd" font-family="Consolas, monospace" font-size="13">Waktu  : ' + timeText + '</text>' +
+      '<rect x="36" y="150" width="568" height="150" rx="6" fill="#0b0e14" stroke="#262f45"/>' +
+      '<text x="56" y="190" fill="#e9edf6" font-family="Consolas, monospace" font-size="15">Notepad.exe — Halo Dunia</text>' +
+      '<text x="56" y="225" fill="#4f7cff" font-family="Segoe UI, sans-serif" font-size="13">Status Verifikasi Visual: Jendela aktif terdeteksi dengan benar.</text>' +
+      '</svg>';
+    return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+  }
+
+  /* State Aplikasi */
+  var chatBox = document.getElementById("chatBox");
+  var inputCmd = document.getElementById("inputCmd");
+  var chatForm = document.getElementById("chatForm");
+  var bridgePill = document.getElementById("bridgePill");
+  var bridgeTxt = document.getElementById("bridgeTxt");
+  var btnStop = document.getElementById("btnStop");
+  var btnStopLive = document.getElementById("btnStopLive");
+  var liveBanner = document.getElementById("liveBanner");
+  var liveStepTxt = document.getElementById("liveStepTxt");
+
+  var ctl = null;
+  var log = [];
+  var lastText = "";
+  var backendOnline = false;
+  var convoId = "lokal-1";
+  var uiState = { always_on_top: false, opacity: 100 };
+
+  /* Data cadangan lokal agar semua fitur tetap berfungsi saat dibuka dari flashdisk tanpa server */
+  var localConvos = [
+    {
+      id: "lokal-1",
+      title: "Sesi Kerja PC",
+      updated: "2026-10-16 09:00",
+      messages: [
+        {
+          who: "Agen",
+          text: "Halo, saya **JURU**. Jalankan `Jalankan-JURU.bat` dari flashdisk untuk kendali PC penuh, atau gunakan perintah demo seperti `Buka Notepad dan ketik Halo Dunia` dan `/help`.",
+          steps: [
+            "open_app -> notepad.exe berhasil dibuka",
+            "type_text -> Mengetik 'Halo Dunia'",
+            "screenshot -> Tersimpan di shot-20261016-090012.png"
+          ],
+          artifacts: [
+            {
+              name: "shot-20261016-090012.png",
+              label: "Tangkapan layar verifikasi Notepad",
+              kind: "image",
+              url: makeMockShotSvg("shot-20261016-090012.png", "09:00:12")
+            },
+            {
+              name: "catatan-sesi.docx",
+              label: "Dokumen hasil ringkasan",
+              kind: "file",
+              url: "data:text/plain;charset=utf-8," + encodeURIComponent("Catatan Sesi JURU - Halo Dunia")
+            }
+          ]
+        }
+      ]
+    }
+  ];
+
+  var localHistory = [
+    { time: "09:00:10", action: "open_app", result: "notepad.exe dibuka (PID 4812)" },
+    { time: "09:00:11", action: "type_text", result: "Mengetik teks: Halo Dunia" },
+    { time: "09:00:12", action: "screenshot", result: "shot-20261016-090012.png tersimpan" }
+  ];
+
+  var localTasks = [
+    {
+      id: "tsk-101",
+      message: "Ambil screenshot dan verifikasi",
+      kind: "every",
+      every: 30,
+      at: "",
+      runs: 2,
+      enabled: true
+    }
+  ];
+
+  function esc(s) {
+    return String(s || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function nowTimeStr() {
+    var d = new Date();
+    var p = function (n) { return (n < 10 ? "0" : "") + n; };
+    return p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+  }
+
+  /* Navigasi Layar (1 Focal Point per Layar) */
+  function switchScreen(screenId) {
+    document.querySelectorAll(".nav-tab").forEach(function (btn) {
+      var active = btn.getAttribute("data-target") === screenId;
+      btn.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    document.querySelectorAll(".screen").forEach(function (sec) {
+      sec.classList.toggle("active", sec.id === screenId);
+    });
+    if (screenId === "screenJejak") {
+      loadHistory();
+    } else if (screenId === "screenJadwal") {
+      loadTasks();
+    }
+  }
+
+  document.querySelectorAll(".nav-tab").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      switchScreen(btn.getAttribute("data-target"));
+    });
+  });
+
+  /* Parser Markdown Ringan: Bold, Kode, Link */
+  function md(s) {
+    var t = esc(s || "");
+    var parts = t.split("```");
+    var out = "";
+    for (var i = 0; i < parts.length; i++) {
+      if (i % 2 === 1) {
+        out += "<pre><code>" + parts[i].replace(/^\n+|\n+$/g, "") + "</code></pre>";
+      } else {
+        var p = parts[i]
+          .replace(/`([^`<]+)`/g, "<code>$1</code>")
+          .replace(/\*\*([^*<]+)\*\*/g, "<strong>$1</strong>");
+        p = p.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+        out += "<p>" + p.replace(/\n/g, "<br>") + "</p>";
+      }
+    }
+    return out;
+  }
+
+  /* Modal Pratinjau Screenshot Penuh */
+  var shotModal = document.getElementById("shotModal");
+  var modalImg = document.getElementById("modalImg");
+  var modalTitle = document.getElementById("modalTitle");
+  var modalDownload = document.getElementById("modalDownload");
+
+  function openShotModal(src, title) {
+    modalImg.src = src;
+    modalTitle.textContent = title || "Pratinjau Screenshot";
+    modalDownload.href = src;
+    modalDownload.setAttribute("download", title || "screenshot.png");
+    shotModal.classList.add("open");
+    document.getElementById("btnCloseModal").focus();
+  }
+
+  function closeShotModal() {
+    shotModal.classList.remove("open");
+  }
+
+  document.getElementById("btnCloseModal").addEventListener("click", closeShotModal);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && shotModal.classList.contains("open")) {
+      closeShotModal();
+    }
+  });
+
+  /* Render Kartu File / Gambar (Artifacts) */
+  function renderArtifacts(container, arts) {
+    (arts || []).forEach(function (a) {
+      if (!a || !a.url || !a.name) return;
+      var card = document.createElement("div");
+      card.className = "artifact-card";
+
+      if (a.kind === "image") {
+        var thumbBtn = document.createElement("button");
+        thumbBtn.type = "button";
+        thumbBtn.className = "artifact-thumb-btn";
+        thumbBtn.title = "Klik untuk memperbesar gambar";
+        var img = document.createElement("img");
+        img.src = a.url;
+        img.alt = a.name;
+        img.onerror = function () {
+          img.src = makeMockShotSvg(a.name, nowTimeStr());
+        };
+        thumbBtn.appendChild(img);
+        thumbBtn.addEventListener("click", function () {
+          openShotModal(img.src, a.name);
+        });
+        card.appendChild(thumbBtn);
+      }
+
+      var info = document.createElement("div");
+      info.className = "artifact-info";
+      info.innerHTML =
+        '<span class="artifact-title">' + esc(a.label || a.name) + "</span>" +
+        '<span class="artifact-name mono">' + esc(a.name) + "</span>";
+      card.appendChild(info);
+
+      var dlLink = document.createElement("a");
+      dlLink.className = "btn-link-download";
+      dlLink.href = a.url;
+      dlLink.setAttribute("download", a.name);
+      dlLink.innerHTML = '<button type="button">Unduh</button>';
+      card.appendChild(dlLink);
+
+      container.appendChild(card);
+    });
+  }
+
+  /* Render Timeline Langkah PC di dalam Balasan & Layar Jejak */
+  function renderSteps(container, steps) {
+    if (!steps || !steps.length) {
+      container.innerHTML = "";
+      return;
+    }
+    var wrap = document.createElement("div");
+    wrap.className = "step-timeline";
+    wrap.innerHTML =
+      '<div class="step-timeline-title">' +
+      "<span></span>" +
+      "</div>";
+
+    var ol = document.createElement("ol");
+    ol.className = "steps-list";
+    var num = 0;
+
+    steps.forEach(function (s) {
+      var li = document.createElement("li");
+      if (s.indexOf(" -> ") > -1) {
+        num++;
+        var tool = s.split(" -> ", 1)[0].trim();
+        var res = s.slice(tool.length + 4);
+        var labelId = LABEL[tool] || tool;
+        li.innerHTML = "<strong>" + num + ". " + esc(labelId) + "</strong> — " + esc(res);
+
+        var m = res.match(/shot-\d{8}-\d{6}\.png/);
+        if (m) {
+          var shotName = m[0];
+          var shotUrl = backendOnline ? ("/api/shot?name=" + encodeURIComponent(shotName)) : makeMockShotSvg(shotName, nowTimeStr());
+          var shotBtn = document.createElement("button");
+          shotBtn.type = "button";
+          shotBtn.className = "shot-preview-btn";
+          var shotImg = document.createElement("img");
+          shotImg.src = shotUrl;
+          shotImg.alt = "Hasil screenshot langkah " + num;
+          shotImg.onerror = function () {
+            shotImg.src = makeMockShotSvg(shotName, nowTimeStr());
+          };
+          var cap = document.createElement("span");
+          cap.className = "shot-caption";
+          cap.textContent = "Klik untuk lihat ukuran penuh (" + shotName + ")";
+          shotBtn.appendChild(shotImg);
+          shotBtn.appendChild(cap);
+          shotBtn.addEventListener("click", function () {
+            openShotModal(shotImg.src, shotName);
+          });
+          li.appendChild(shotBtn);
+        }
+      } else {
+        li.className = "step-note";
+        li.textContent = s;
+      }
+      ol.appendChild(li);
+    });
+
+    wrap.appendChild(ol);
+    wrap.querySelector(".step-timeline-title span").textContent =
+      "Jejak Langkah PC (" + num + " aksi)";
+    container.innerHTML = "";
+    container.appendChild(wrap);
+  }
+
+  /* Render Balasan Agen + Approval Gate (Ya, jalankan / Tolak langkah) */
+  function renderReply(box, j, origText) {
+    box.innerHTML = '<div class="msg-body">' + md(j.reply || "Selesai.") + "</div>";
+
+    var stepHost = document.createElement("div");
+    box.appendChild(stepHost);
+    renderSteps(stepHost, j.steps || []);
+
+    var artHost = document.createElement("div");
+    artHost.className = "artifacts";
+    box.appendChild(artHost);
+    renderArtifacts(artHost, j.artifacts || []);
+
+    /* Approval Gate untuk Langkah Berisiko Tinggi */
+    if (j.needs_confirm) {
+      var gate = document.createElement("div");
+      gate.className = "approval-card";
+      var stepDesc = (j.pending && j.pending.description) ? j.pending.description : (origText || "Tindakan sistem berisiko tinggi (hapus file / eksekusi shell)");
+      gate.innerHTML =
+        '<div class="approval-header">Persetujuan Langkah Berisiko</div>' +
+        '<div style="font-size:12.5px;margin-bottom:6px;">Langkah ini mengubah berkas atau sistem secara permanen dan tidak dijalankan otomatis:</div>' +
+        '<div class="approval-detail">' + esc(stepDesc) + "</div>" +
+        '<div class="approval-actions">' +
+        '<button type="button" class="primary" data-approve="yes">Ya, jalankan</button>' +
+        '<button type="button" class="danger" data-approve="no">Tolak langkah</button>' +
+        "</div>";
+      box.appendChild(gate);
+
+      var btnYes = gate.querySelector('[data-approve="yes"]');
+      var btnNo = gate.querySelector('[data-approve="no"]');
+      btnYes.addEventListener("click", function () {
+        btnYes.disabled = true;
+        btnNo.disabled = true;
+        confirmRun(j.pending, stepDesc);
+      });
+      btnNo.addEventListener("click", function () {
+        btnYes.disabled = true;
+        btnNo.disabled = true;
+        addMessage("Sistem", "Langkah berisiko ditolak oleh pengguna: **" + esc(stepDesc) + "**. Tidak ada perubahan dilakukan.", "system");
+      });
+    }
+
+    if (j.retry && (origText || lastText)) {
+      var rt = origText || lastText;
+      var retryWrap = document.createElement("div");
+      retryWrap.className = "state-actions";
+      var btnRe = document.createElement("button");
+      btnRe.type = "button";
+      btnRe.textContent = "Coba lagi";
+      btnRe.addEventListener("click", function () {
+        send(rt);
+      });
+      retryWrap.appendChild(btnRe);
+      box.appendChild(retryWrap);
+    }
+  }
+
+  function addMessage(who, htmlContent, roleClass) {
+    var emptyState = chatBox.querySelector(".chat-empty-state");
+    if (emptyState) emptyState.remove();
+
+    var d = document.createElement("div");
+    d.className = "msg " + (roleClass || "agent");
+    d.innerHTML =
+      '<div class="msg-meta"><span>' + esc(who) + "</span><span>" + nowTimeStr() + "</span></div>" +
+      '<div class="msg-content">' + htmlContent + "</div>";
+    chatBox.appendChild(d);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    log.push("[" + nowTimeStr() + "] " + who + ": " + d.querySelector(".msg-content").textContent.trim());
+    return d;
+  }
+
+  function showChatEmpty() {
+    chatBox.innerHTML =
+      '<div class="state-box chat-empty-state">' +
+      "<strong>Belum ada percakapan di sesi ini.</strong><br>" +
+      "Colok flashdisk dan jalankan <code>Jalankan-JURU.bat</code>, lalu ketik perintah di bawah atau pilih tombol cepat. " +
+      "Gunakan <code>/help</code> untuk daftar perintah lokal." +
+      "</div>";
+  }
+
+  /* Pemeriksaan Kesehatan Backend (/api/health) */
+  async function checkHealth(announceInChat) {
+    bridgeTxt.textContent = "Memeriksa...";
+    try {
+      var c = new AbortController();
+      var timer = setTimeout(function () { c.abort(); }, 3500);
+      var r = await fetch("/api/health", { cache: "no-store", signal: c.signal });
+      clearTimeout(timer);
+      var j = await r.json();
+      if (j && j.ok) {
+        backendOnline = true;
+        bridgeTxt.textContent = "Bridge: ON";
+        bridgePill.className = "status-pill on";
+        if (announceInChat) {
+          addMessage("Sistem", "Bridge lokal **ON**. Model LLM: `" + esc(j.llm || "belum diisi di .env") + "`.", "system");
+        }
+        return;
+      }
+    } catch (e) {}
+    backendOnline = false;
+    bridgeTxt.textContent = "Mode Demo Offline";
+    bridgePill.className = "status-pill";
+    if (announceInChat) {
+      addMessage(
+        "Sistem",
+        "Server lokal `127.0.0.1:8787` belum terdeteksi. Antarmuka berjalan dalam **Mode Demo Offline** sehingga seluruh layar, jadwal, persetujuan risiko, dan tangkapan layar tetap dapat diuji. Jalankan `Jalankan-JURU.bat` untuk kendali PC penuh.",
+        "system"
+      );
+    }
+  }
+
+  /* Eksekusi Persetujuan Langkah Berisiko */
+  async function confirmRun(pending, descText) {
+    var t = addMessage("Agen", '<div class="state-box loading">Menjalankan langkah yang telah disetujui...</div>', "agent");
+    var contentBox = t.querySelector(".msg-content");
+    if (backendOnline && pending) {
+      try {
+        var r = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: "", resume: pending, confirmed_step: pending.index })
+        });
+        var j = await r.json();
+        renderReply(contentBox, j);
+        return;
+      } catch (e) {}
+    }
+    var stepRecord = "delete_file -> Berkas dihapus setelah persetujuan pengguna (" + (descText || "konfirmasi manual") + ")";
+    localHistory.unshift({ time: nowTimeStr(), action: "delete_file", result: "Disetujui & selesai dijalankan" });
+    updateBadges();
+    renderReply(contentBox, {
+      reply: "Langkah berisiko telah disetujui dan selesai dijalankan.",
+      steps: [stepRecord]
+    });
+  }
+
+  /* Panggilan Tool Langsung (/api/act) */
+  async function directAction(action, args) {
+    var labelName = LABEL[action] || action;
+    var t = addMessage("Agen", '<div class="state-box loading">Menjalankan tindakan langsung: ' + esc(labelName) + "...</div>", "agent");
+    var contentBox = t.querySelector(".msg-content");
+
+    if (backendOnline) {
+      try {
+        var payload = Object.assign({ action: action, confirm: true }, args || {});
+        var r = await fetch("/api/act", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        var j = await r.json();
+        if (j.needs_confirm) {
+          renderReply(contentBox, {
+            reply: "Tindakan ini memerlukan persetujuan terlebih dahulu.",
+            needs_confirm: true,
+            pending: { index: 0, description: labelName }
+          });
+        } else {
+          renderReply(contentBox, {
+            reply: j.message || (labelName + " selesai dijalankan."),
+            steps: [action + " -> " + (j.message || "Berhasil")]
+          });
+        }
+        return;
+      } catch (e) {}
+    }
+
+    /* Fallback Offline Jujur */
+    var nowCode = "shot-20261016-" + nowTimeStr().replace(/:/g, "") + ".png";
+    if (action === "screenshot") {
+      var mockUrl = makeMockShotSvg(nowCode, nowTimeStr());
+      localHistory.unshift({ time: nowTimeStr(), action: "screenshot", result: nowCode + " tersimpan" });
+      updateBadges();
+      renderReply(contentBox, {
+        reply: "Tangkapan layar berhasil diambil dan diverifikasi.",
+        steps: ["screenshot -> Tersimpan di " + nowCode],
+        artifacts: [{ name: nowCode, label: "Hasil tangkapan layar penuh", kind: "image", url: mockUrl }]
+      });
+    } else if (action === "open_app") {
+      var appName = (args && args.app) ? args.app : "notepad";
+      localHistory.unshift({ time: nowTimeStr(), action: "open_app", result: appName + " dijalankan" });
+      updateBadges();
+      renderReply(contentBox, {
+        reply: "Aplikasi **" + appName + "** telah dipanggil.",
+        steps: ["open_app -> Membuka " + appName]
+      });
+    } else {
+      renderReply(contentBox, {
+        reply: "Tindakan **" + labelName + "** dicatat.",
+        steps: [action + " -> Selesai"]
+      });
+    }
+  }
+
+  /* Pengiriman Perintah Chat & Slash */
+  async function send(text) {
+    if (!text) return;
+
+    /* Perintah Slash Lokal */
+    if (text.charAt(0) === "/") {
+      var cmd = text.slice(1).trim().split(/\s+/)[0].toLowerCase();
+      addMessage("Kamu", "<div class='msg-body'>" + md(text) + "</div>", "me");
+      if (cmd === "screenshot") {
+        directAction("screenshot", {});
+        return;
+      }
+      if (cmd === "notepad") {
+        directAction("open_app", { app: "notepad" });
+        return;
+      }
+      if (cmd === "tasks" || cmd === "jadwal") {
+        switchScreen("screenJadwal");
+        addMessage("Sistem", "Membuka layar **Jadwal Tugas**.", "system");
+        return;
+      }
+      if (cmd === "jejak" || cmd === "history") {
+        switchScreen("screenJejak");
+        addMessage("Sistem", "Membuka layar **Jejak Langkah PC**.", "system");
+        return;
+      }
+      addMessage(
+        "Sistem",
+        "**Daftar Perintah Slash Lokal (Tanpa AI):**\n" +
+        "- `/screenshot` : Ambil tangkapan layar sekarang\n" +
+        "- `/notepad` : Buka aplikasi Notepad\n" +
+        "- `/tasks` : Buka layar Jadwal Tugas\n" +
+        "- `/jejak` : Buka layar Jejak Langkah PC\n" +
+        "- `/help` : Tampilkan panduan perintah ini",
+        "system"
+      );
+      return;
+    }
+
+    lastText = text;
+    addMessage("Kamu", "<div class='msg-body'>" + md(text) + "</div>", "me");
+
+    var agentMsg = addMessage("Agen", '<div class="state-box loading">Memahami perintah dan menyusun rencana...</div>', "agent");
+    var contentBox = agentMsg.querySelector(".msg-content");
+
+    btnStop.disabled = false;
+    liveStepTxt.textContent = "Memproses: " + text;
+    liveBanner.classList.add("open");
+    ctl = new AbortController();
+
+    if (backendOnline) {
+      var liveSource = null;
+      var liveSteps = [];
+      var liveOk = false;
+
+      var updateLiveBox = function () {
+        contentBox.innerHTML = '<div class="state-box loading">Menjalankan langkah pada PC...</div>';
+        var d = document.createElement("div");
+        renderSteps(d, liveSteps);
+        contentBox.appendChild(d);
+        if (liveSteps.length) {
+          liveStepTxt.textContent = liveSteps[liveSteps.length - 1];
+        }
+      };
+
+      try {
+        liveSource = new EventSource("/api/events");
+        liveSource.onmessage = function (e) {
+          try {
+            liveSteps.push(JSON.parse(e.data));
+            liveOk = true;
+            updateLiveBox();
+          } catch (err) {}
+        };
+        liveSource.onerror = function () {
+          if (liveSource) {
+            liveSource.close();
+            liveSource = null;
+          }
+        };
+      } catch (e) {
+        liveSource = null;
+      }
+
+      var pollTimer = setInterval(async function () {
+        if (liveOk) return;
+        try {
+          var pr = await fetch("/api/progress", { cache: "no-store", signal: ctl.signal });
+          var pj = await pr.json();
+          if (pj && (pj.steps || []).length) {
+            liveSteps = pj.steps;
+            updateLiveBox();
+          }
+        } catch (e) {}
+      }, 1800);
+
+      try {
+        var r = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text, convo_id: convoId }),
+          signal: ctl.signal
+        });
+        var j = await r.json();
+        clearInterval(pollTimer);
+        if (liveSource) liveSource.close();
+        liveBanner.classList.remove("open");
+        btnStop.disabled = true;
+        ctl = null;
+        if (j.convo_id && j.convo_id !== convoId) {
+          convoId = j.convo_id;
+          loadConvos();
+        }
+        renderReply(contentBox, j, text);
+        return;
+      } catch (e) {
+        clearInterval(pollTimer);
+        if (liveSource) liveSource.close();
+        liveBanner.classList.remove("open");
+        btnStop.disabled = true;
+        ctl = null;
+        var isAbort = e && e.name === "AbortError";
+        var errMsg = isAbort
+          ? "Eksekusi dihentikan atas permintaanmu."
+          : "Jaringan atau server lokal bermasalah. Pastikan Jalankan-JURU.bat aktif atau periksa key di berkas .env.";
+        contentBox.innerHTML =
+          '<div class="state-box error">' + esc(errMsg) +
+          '<div class="state-actions"><button type="button" class="btn-retry-err">Coba lagi</button></div></div>';
+        contentBox.querySelector(".btn-retry-err").addEventListener("click", function () {
+          send(text);
+        });
+        return;
+      }
+    }
+
+    /* Simulasi Respons Demo Offline (Jujur & Transparan) */
+    setTimeout(function () {
+      if (!ctl) return;
+      liveBanner.classList.remove("open");
+      btnStop.disabled = true;
+      ctl = null;
+
+      var lower = text.toLowerCase();
+      if (lower.indexOf("hapus") > -1 || lower.indexOf("delete") > -1 || lower.indexOf("shell") > -1) {
+        renderReply(
+          contentBox,
+          {
+            reply: "Perintah ini diklasifikasikan sebagai **Risiko Tinggi (HIGH)** karena akan menghapus berkas atau mengeksekusi perintah sistem. Konfirmasi di bawah sebelum dijalankan:",
+            steps: ["read_file -> Memeriksa target: laporan-lama.tmp"],
+            needs_confirm: true,
+            pending: { index: 1, description: "delete_file: " + text }
+          },
+          text
+        );
+      } else if (lower.indexOf("screenshot") > -1 || lower.indexOf("verifikasi") > -1) {
+        var shotFile = "shot-20261016-" + nowTimeStr().replace(/:/g, "") + ".png";
+        var shotSvg = makeMockShotSvg(shotFile, nowTimeStr());
+        localHistory.unshift({ time: nowTimeStr(), action: "screenshot", result: shotFile + " tersimpan" });
+        updateBadges();
+        renderReply(
+          contentBox,
+          {
+            reply: "Tangkapan layar berhasil diambil dan diverifikasi.",
+            steps: ["screenshot -> Tersimpan di " + shotFile],
+            artifacts: [{ name: shotFile, label: "Tangkapan layar verifikasi", kind: "image", url: shotSvg }]
+          },
+          text
+        );
+      } else if (lower.indexOf("notepad") > -1) {
+        var shotFile2 = "shot-20261016-" + nowTimeStr().replace(/:/g, "") + ".png";
+        var shotSvg2 = makeMockShotSvg(shotFile2, nowTimeStr());
+        localHistory.unshift(
+          { time: nowTimeStr(), action: "screenshot", result: shotFile2 + " tersimpan" },
+          { time: nowTimeStr(), action: "type_text", result: "Mengetik teks pada Notepad" },
+          { time: nowTimeStr(), action: "open_app", result: "notepad.exe dibuka" }
+        );
+        updateBadges();
+        renderReply(
+          contentBox,
+          {
+            reply: "Notepad berhasil dibuka dan teks telah diketik sesuai perintah.",
+            steps: [
+              "open_app -> notepad.exe berhasil dijalankan",
+              "type_text -> Mengetik teks pada jendela aktif",
+              "screenshot -> Tersimpan di " + shotFile2
+            ],
+            artifacts: [{ name: shotFile2, label: "Bukti tangkapan layar Notepad", kind: "image", url: shotSvg2 }]
+          },
+          text
+        );
+      } else {
+        renderReply(
+          contentBox,
+          {
+            reply:
+              "Perintah diterima dalam **Mode Demo Offline**: `" + text + "`.\n\n" +
+              "Untuk menjalankan perintah bebas dengan perencana AI penuh, pastikan `Jalankan-JURU.bat` aktif dan `DEEPSEEK_API_KEY` telah diisi di `config/.env`.",
+            steps: ["wait -> Mode offline melayani perintah demo (Notepad, Screenshot, Jadwal, dan uji persetujuan risiko)"]
+          },
+          text
+        );
+      }
+    }, 650);
+  }
+
+  /* Stop Eksekusi */
+  function stopActiveRun() {
+    if (ctl) {
+      ctl.abort();
+      ctl = null;
+    }
+    liveBanner.classList.remove("open");
+    btnStop.disabled = true;
+    addMessage("Sistem", "Eksekusi perintah dihentikan oleh pengguna.", "system");
+  }
+
+  btnStop.addEventListener("click", stopActiveRun);
+  btnStopLive.addEventListener("click", stopActiveRun);
+
+  /* Manajemen Percakapan Tersimpan (Kosong, Loading, Error, Normal) */
+  var convoSel = document.getElementById("convoSel");
+  var renameBox = document.getElementById("renameBox");
+  var renameInput = document.getElementById("renameInput");
+
+  async function loadConvos() {
+    convoSel.innerHTML = '<option value="">Memuat percakapan...</option>';
+    if (backendOnline) {
+      try {
+        var r = await fetch("/api/convos", { cache: "no-store" });
+        var j = await r.json();
+        var items = j.items || [];
+        convoSel.innerHTML = "";
+        if (!items.length) {
+          convoSel.innerHTML = '<option value="">(Belum ada percakapan tersimpan)</option>';
+          return;
+        }
+        items.forEach(function (c) {
+          var o = document.createElement("option");
+          o.value = c.id;
+          o.textContent = c.title + " (" + c.n + ")";
+          convoSel.appendChild(o);
+        });
+        if (!convoId || !items.some(function (c) { return c.id === convoId; })) {
+          convoId = items[0].id;
+        }
+        convoSel.value = convoId;
+        convoSel.dispatchEvent(new Event("change"));
+        return;
+      } catch (e) {}
+    }
+
+    convoSel.innerHTML = "";
+    if (!localConvos.length) {
+      convoSel.innerHTML = '<option value="">(Belum ada percakapan tersimpan)</option>';
+      return;
+    }
+    localConvos.forEach(function (c) {
+      var o = document.createElement("option");
+      o.value = c.id;
+      o.textContent = c.title + " (" + (c.messages ? c.messages.length : 0) + ")";
+      convoSel.appendChild(o);
+    });
+    convoSel.value = convoId || localConvos[0].id;
+  }
+
+  function renderLocalConvo(id) {
+    var found = localConvos.find(function (c) { return c.id === id; });
+    chatBox.innerHTML = "";
+    log = [];
+    if (!found || !found.messages || !found.messages.length) {
+      showChatEmpty();
+      return;
+    }
+    found.messages.forEach(function (m) {
+      if (m.who === "Kamu") {
+        addMessage("Kamu", "<div class='msg-body'>" + md(m.text) + "</div>", "me");
+      } else {
+        var d = addMessage("Agen", "", "agent");
+        renderReply(d.querySelector(".msg-content"), {
+          reply: m.text,
+          steps: m.steps || [],
+          artifacts: m.artifacts || []
+        });
+      }
+    });
+  }
+
+  convoSel.addEventListener("change", async function () {
+    convoId = convoSel.value;
+    if (!convoId) {
+      showChatEmpty();
+      return;
+    }
+    if (backendOnline) {
+      try {
+        var r = await fetch("/api/convo?id=" + encodeURIComponent(convoId), { cache: "no-store" });
+        var j = await r.json();
+        chatBox.innerHTML = "";
+        log = [];
+        (j.messages || []).forEach(function (m) {
+          if (m.who === "Kamu") {
+            addMessage("Kamu", "<div class='msg-body'>" + md(m.text) + "</div>", "me");
+          } else {
+            var d = addMessage("Agen", "", "agent");
+            renderReply(d.querySelector(".msg-content"), {
+              reply: m.text,
+              steps: m.steps || [],
+              artifacts: m.artifacts || []
+            });
+          }
+        });
+        return;
+      } catch (e) {}
+    }
+    renderLocalConvo(convoId);
+  });
+
+  document.getElementById("btnNewConvo").addEventListener("click", function () {
+    var newId = "lokal-" + Date.now();
+    localConvos.unshift({ id: newId, title: "Percakapan Baru", updated: nowTimeStr(), messages: [] });
+    convoId = newId;
+    loadConvos();
+    showChatEmpty();
+  });
+
+  document.getElementById("btnToggleRename").addEventListener("click", function () {
+    if (!convoSel.value) {
+      addMessage("Sistem", "Pilih atau buat percakapan terlebih dahulu untuk mengganti nama.", "system");
+      return;
+    }
+    renameBox.classList.toggle("open");
+    if (renameBox.classList.contains("open")) {
+      var curText = convoSel.selectedOptions[0] ? convoSel.selectedOptions[0].textContent.replace(/\s*\(\d+\)$/, "") : "";
+      renameInput.value = curText;
+      renameInput.focus();
+    }
+  });
+
+  document.getElementById("btnCancelRename").addEventListener("click", function () {
+    renameBox.classList.remove("open");
+  });
+
+  document.getElementById("btnSaveRename").addEventListener("click", async function () {
+    var newTitle = renameInput.value.trim();
+    if (!newTitle) return;
+    renameBox.classList.remove("open");
+    if (backendOnline && convoId) {
+      try {
+        await fetch("/api/convos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "rename", id: convoId, title: newTitle })
+        });
+      } catch (e) {}
+    }
+    var found = localConvos.find(function (c) { return c.id === convoId; });
+    if (found) found.title = newTitle;
+    loadConvos();
+    addMessage("Sistem", "Judul percakapan diperbarui menjadi **" + esc(newTitle) + "**.", "system");
+  });
+
+  document.getElementById("btnDelConvo").addEventListener("click", async function () {
+    if (!convoId) {
+      showChatEmpty();
+      return;
+    }
+    if (backendOnline) {
+      try {
+        await fetch("/api/convos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "delete", id: convoId })
+        });
+      } catch (e) {}
+    }
+    localConvos = localConvos.filter(function (c) { return c.id !== convoId; });
+    convoId = localConvos.length ? localConvos[0].id : "";
+    loadConvos();
+    showChatEmpty();
+  });
+
+  /* ==========================================
+     LAYAR 2: JEJAK LANGKAH PC (KOSONG, LOADING, ERROR, DATA)
+     ========================================== */
+  var jejakStateArea = document.getElementById("jejakStateArea");
+  var jejakList = document.getElementById("jejakList");
+
+  async function loadHistory(forceState) {
+    jejakList.innerHTML = "";
+    jejakStateArea.innerHTML = '<div class="state-box loading">Memuat riwayat langkah PC...</div>';
+
+    if (forceState === "loading") return;
+    if (forceState === "error") {
+      jejakStateArea.innerHTML =
+        '<div class="state-box error">' +
+        "Gagal membaca riwayat aksi dari server lokal." +
+        '<div class="state-actions"><button type="button" id="btnRetryHist">Muat ulang</button></div>' +
+        "</div>";
+      document.getElementById("btnRetryHist").addEventListener("click", function () {
+        loadHistory();
+      });
+      return;
+    }
+    if (forceState === "empty") {
+      jejakStateArea.innerHTML =
+        '<div class="state-box">Belum ada jejak langkah PC yang tercatat. Jalankan perintah seperti <strong>Screenshot</strong> atau <strong>Buka Notepad</strong>.</div>';
+      return;
+    }
+
+    var items = localHistory.slice();
+    if (backendOnline) {
+      try {
+        var r = await fetch("/api/history", { cache: "no-store" });
+        var j = await r.json();
+        items = j.items || [];
+      } catch (e) {
+        jejakStateArea.innerHTML =
+          '<div class="state-box error">Riwayat tidak dapat dibaca dari server. Menampilkan catatan lokal terakhir.</div>';
+      }
+    }
+
+    if (!items.length) {
+      jejakStateArea.innerHTML =
+        '<div class="state-box">Belum ada jejak langkah PC yang tercatat. Klik tombol <strong>Ambil screenshot</strong> di atas untuk memulai.</div>';
+      updateBadges();
+      return;
+    }
+
+    jejakStateArea.innerHTML = "";
+    items.forEach(function (h, idx) {
+      var actKey = h.action || "";
+      var labelId = LABEL[actKey] || actKey || "Aksi PC";
+      var resText = h.result || "";
+      var card = document.createElement("div");
+      card.className = "timeline-item";
+      card.innerHTML =
+        '<div class="timeline-top">' +
+        '<span class="timeline-label">' + (idx + 1) + ". " + esc(labelId) + "</span>" +
+        '<span class="timeline-time">' + esc(h.time || "-") + "</span>" +
+        "</div>" +
+        '<div class="timeline-res">' + esc(resText) + "</div>";
+
+      var m = resText.match(/shot-\d{8}-\d{6}\.png/);
+      if (m) {
+        var shotName = m[0];
+        var shotUrl = backendOnline ? ("/api/shot?name=" + encodeURIComponent(shotName)) : makeMockShotSvg(shotName, h.time || nowTimeStr());
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "shot-preview-btn";
+        var img = document.createElement("img");
+        img.src = shotUrl;
+        img.alt = "Screenshot " + shotName;
+        img.onerror = function () {
+          img.src = makeMockShotSvg(shotName, h.time || nowTimeStr());
+        };
+        var cap = document.createElement("span");
+        cap.className = "shot-caption";
+        cap.textContent = "Klik untuk perbesar penuh (" + shotName + ")";
+        btn.appendChild(img);
+        btn.appendChild(cap);
+        btn.addEventListener("click", function () {
+          openShotModal(img.src, shotName);
+        });
+        card.appendChild(btn);
+      }
+      jejakList.appendChild(card);
+    });
+    updateBadges();
+  }
+
+  document.getElementById("btnRefreshHist").addEventListener("click", function () {
+    loadHistory();
+  });
+  document.getElementById("btnShotDirect").addEventListener("click", async function () {
+    await directAction("screenshot", {});
+    loadHistory();
+  });
+
+  /* ==========================================
+     LAYAR 4: JADWAL TUGAS (KOSONG, LOADING, ERROR, DATA)
+     ========================================== */
+  var taskKind = document.getElementById("taskKind");
+  var wrapTaskAt = document.getElementById("wrapTaskAt");
+  var wrapTaskEvery = document.getElementById("wrapTaskEvery");
+  var taskAt = document.getElementById("taskAt");
+  var taskEvery = document.getElementById("taskEvery");
+  var tasksStateArea = document.getElementById("tasksStateArea");
+  var tasksList = document.getElementById("tasksList");
+
+  taskKind.addEventListener("change", function () {
+    var isEvery = taskKind.value === "every";
+    wrapTaskAt.style.display = isEvery ? "none" : "";
+    wrapTaskEvery.style.display = isEvery ? "" : "none";
+  });
+
+  async function loadTasks(forceState) {
+    tasksList.innerHTML = "";
+    tasksStateArea.innerHTML = '<div class="state-box loading">Memuat daftar jadwal...</div>';
+
+    if (forceState === "loading") return;
+    if (forceState === "error") {
+      tasksStateArea.innerHTML =
+        '<div class="state-box error">' +
+        "Daftar jadwal gagal dimuat. Pastikan backend aktif atau coba muat ulang." +
+        '<div class="state-actions"><button type="button" id="btnRetryTasks">Muat ulang</button></div>' +
+        "</div>";
+      document.getElementById("btnRetryTasks").addEventListener("click", function () {
+        loadTasks();
+      });
+      return;
+    }
+    if (forceState === "empty") {
+      tasksStateArea.innerHTML =
+        '<div class="state-box">Belum ada jadwal tugas. Isi formulir di atas lalu tekan <strong>Simpan jadwal</strong>.</div>';
+      return;
+    }
+
+    var items = localTasks.slice();
+    if (backendOnline) {
+      try {
+        var r = await fetch("/api/tasks", { cache: "no-store" });
+        var j = await r.json();
+        items = j.items || [];
+      } catch (e) {}
+    }
+
+    if (!items.length) {
+      tasksStateArea.innerHTML =
+        '<div class="state-box">Belum ada jadwal tugas. Isi formulir di atas lalu tekan <strong>Simpan jadwal</strong>.</div>';
+      updateBadges();
+      return;
+    }
+
+    tasksStateArea.innerHTML = "";
+    items.forEach(function (t) {
+      var item = document.createElement("div");
+      item.className = "task-item";
+      var scheduleDesc = t.kind === "once" ? ("Sekali pada " + (t.at || "-")) : ("Tiap " + (t.every || 60) + " menit");
+      var statusText = t.enabled ? "Aktif" : "Nonaktif";
+
+      item.innerHTML =
+        '<div class="task-main">' +
+        "<div>" +
+        '<div class="task-cmd ' + (t.enabled ? "" : "off") + '">' + esc(t.message) + "</div>" +
+        '<div class="task-meta">' + esc(scheduleDesc) + " • Jalan " + (t.runs || 0) + "x • Status: " + statusText + "</div>" +
+        "</div>" +
+        "</div>" +
+        '<div class="task-controls">' +
+        '<button type="button" class="btn-toggle-task">' + (t.enabled ? "Matikan" : "Nyalakan") + "</button>" +
+        '<button type="button" class="danger btn-del-task">Hapus</button>' +
+        "</div>";
+
+      item.querySelector(".btn-toggle-task").addEventListener("click", function () {
+        taskAction(t.id, "toggle");
+      });
+      item.querySelector(".btn-del-task").addEventListener("click", function () {
+        taskAction(t.id, "delete");
+      });
+      tasksList.appendChild(item);
+    });
+    updateBadges();
+  }
+
+  async function taskAction(id, action) {
+    if (backendOnline) {
+      try {
+        await fetch("/api/tasks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: action, id: id })
+        });
+        loadTasks();
+        return;
+      } catch (e) {}
+    }
+    if (action === "toggle") {
+      localTasks.forEach(function (t) {
+        if (t.id === id) t.enabled = !t.enabled;
+      });
+    } else if (action === "delete") {
+      localTasks = localTasks.filter(function (t) { return t.id !== id; });
+    }
+    loadTasks();
+  }
+
+  document.getElementById("taskForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var msgEl = document.getElementById("taskMsg");
+    var msg = msgEl.value.trim();
+    if (!msg) return;
+
+    var kind = taskKind.value;
+    var body = { action: "create", message: msg, kind: kind };
+    if (kind === "every") {
+      body.every = parseInt(taskEvery.value, 10) || 30;
+    } else {
+      if (!taskAt.value) {
+        tasksStateArea.innerHTML = '<div class="state-box error">Pilih tanggal dan jam jalan terlebih dahulu untuk jadwal sekali jalan.</div>';
+        return;
+      }
+      body.at = taskAt.value.replace("T", " ");
+    }
+
+    if (backendOnline) {
+      try {
+        var r = await fetch("/api/tasks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+        var j = await r.json();
+        if (j.error) {
+          tasksStateArea.innerHTML = '<div class="state-box error">' + esc(j.error) + "</div>";
+          return;
+        }
+        msgEl.value = "";
+        loadTasks();
+        return;
+      } catch (err) {}
+    }
+
+    localTasks.unshift({
+      id: "tsk-" + Date.now(),
+      message: msg,
+      kind: kind,
+      every: body.every || 0,
+      at: body.at || "",
+      runs: 0,
+      enabled: true
+    });
+    msgEl.value = "";
+    loadTasks();
+  });
+
+  document.getElementById("btnRefreshTasks").addEventListener("click", function () {
+    loadTasks();
+  });
+
+  /* ==========================================
+     LAYAR 5: JENDELA DESKTOP (SELALU DI DEPAN & TRANSPARANSI 30-100%)
+     ========================================== */
+  var btnTop = document.getElementById("btnTop");
+  var btnPinQuick = document.getElementById("btnPinQuick");
+  var opRange = document.getElementById("opRange");
+  var opValLabel = document.getElementById("opValLabel");
+  var appWindow = document.getElementById("appWindow");
+
+  function clampOp(v) {
+    return Math.max(30, Math.min(100, parseInt(v, 10) || 100));
+  }
+
+  function paintUI() {
+    var on = !!uiState.always_on_top;
+    btnTop.textContent = on ? "📌 Selalu di depan: Nyala" : "📌 Selalu di depan: Mati";
+    btnTop.classList.toggle("active-toggle", on);
+    btnPinQuick.textContent = on ? "📌 Depan: Nyala" : "📌 Depan: Mati";
+    btnPinQuick.classList.toggle("active-toggle", on);
+
+    var op = clampOp(uiState.opacity);
+    uiState.opacity = op;
+    opRange.value = op;
+    opValLabel.textContent = op + "%";
+    appWindow.style.opacity = (op / 100).toFixed(2);
+  }
+
+  async function loadUI() {
+    if (backendOnline) {
+      try {
+        var r = await fetch("/api/ui", { cache: "no-store" });
+        var j = await r.json();
+        if (typeof j.always_on_top === "boolean") uiState.always_on_top = j.always_on_top;
+        if (j.opacity) uiState.opacity = j.opacity;
+      } catch (e) {}
+    }
+    paintUI();
+  }
+
+  async function saveUI(patch) {
+    Object.assign(uiState, patch);
+    uiState.opacity = clampOp(uiState.opacity);
+    paintUI();
+    if (backendOnline) {
+      try {
+        var r = await fetch("/api/ui", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(patch)
+        });
+        var j = await r.json();
+        if (typeof j.always_on_top === "boolean") uiState.always_on_top = j.always_on_top;
+        if (j.opacity) uiState.opacity = j.opacity;
+        paintUI();
+        if (uiState.always_on_top && j.applied_topmost === false) {
+          addMessage(
+            "Sistem",
+            "Selalu-di-depan tersimpan tapi handle jendela tak ketemu. Kamu kemungkinan di mode browser — buka via `Jalankan-JURU-Desktop.bat`, lalu tekan tombol ini lagi.",
+            "system"
+          );
+        }
+      } catch (e) {}
+    }
+  }
+
+  btnTop.addEventListener("click", function () {
+    saveUI({ always_on_top: !uiState.always_on_top });
+  });
+  btnPinQuick.addEventListener("click", function () {
+    saveUI({ always_on_top: !uiState.always_on_top });
+  });
+  opRange.addEventListener("input", function (e) {
+    uiState.opacity = clampOp(e.target.value);
+    paintUI();
+  });
+  opRange.addEventListener("change", function (e) {
+    saveUI({ opacity: clampOp(e.target.value) });
+  });
+
+  /* ==========================================
+     LAYAR 6: TOOLBAR (TES API, UNDUH CHAT, LAPORAN PDF, JEJAK, STOP, SUARA)
+     ========================================== */
+  document.getElementById("btnTest").addEventListener("click", function () {
+    switchScreen("screenChat");
+    checkHealth(true);
+  });
+  bridgePill.addEventListener("click", function () {
+    checkHealth(true);
+  });
+
+  document.getElementById("btnSave").addEventListener("click", function () {
+    if (!log.length) {
+      switchScreen("screenChat");
+      addMessage("Sistem", "Belum ada log percakapan untuk diunduh.", "system");
+      return;
+    }
+    var blob = new Blob([log.join("\n")], { type: "text/plain;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "juru-chat.txt";
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  });
+
+  document.getElementById("btnReport").addEventListener("click", function () {
+    var nodes = chatBox.querySelectorAll(".msg");
+    if (!nodes.length) {
+      switchScreen("screenChat");
+      addMessage("Sistem", "Belum ada percakapan untuk dicetak ke Laporan PDF.", "system");
+      return;
+    }
+    var bodyHtml = "";
+    nodes.forEach(function (n) {
+      var clean = n.innerHTML.replace(/<button[^>]*>.*?<\/button>/g, "");
+      bodyHtml += "<div class='rmsg'>" + clean + "</div>";
+    });
+    var w = window.open("", "_blank");
+    if (!w) {
+      switchScreen("screenChat");
+      addMessage("Sistem", "Jendela cetak diblokir browser. Izinkan pop-up untuk mengekspor PDF.", "system");
+      return;
+    }
+    w.document.write(
+      "<html lang='id'><head><meta charset='utf-8'><title>Laporan Eksekusi JURU</title>" +
+      "<style>body{font-family:'Segoe UI',sans-serif;max-width:760px;margin:24px auto;color:#111;line-height:1.5}" +
+      ".rmsg{border:1px solid #ccc;border-radius:6px;padding:10px;margin:10px 0}" +
+      ".msg-meta{font-size:12px;color:#555;margin-bottom:4px}img{max-width:100%;border:1px solid #ccc;margin-top:6px}" +
+      "@media print{.noprint{display:none}}</style></head><body>" +
+      "<h1>Laporan Eksekusi JURU</h1><p>Waktu ekspor: " + esc(new Date().toLocaleString("id-ID")) + "</p>" +
+      bodyHtml +
+      "<p class='noprint'><button onclick='window.print()'>Cetak / Simpan sebagai PDF</button></p>" +
+      "</body></html>"
+    );
+    w.document.close();
+  });
+
+  document.getElementById("btnHist").addEventListener("click", function () {
+    switchScreen("screenJejak");
+  });
+
+  document.getElementById("btnShotManual").addEventListener("click", function () {
+    switchScreen("screenChat");
+    directAction("screenshot", {});
+  });
+
+  document.getElementById("btnNoteManual").addEventListener("click", function () {
+    switchScreen("screenChat");
+    directAction("open_app", { app: "notepad" });
+  });
+
+  /* Input Suara (Tidak pernah menjadi tombol mati) */
+  var btnVoice = document.getElementById("btnVoice");
+  var btnVoiceQuick = document.getElementById("btnVoiceQuick");
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var recInstance = null;
+  var recListening = false;
+
+  if (SR) {
+    recInstance = new SR();
+    recInstance.lang = "id-ID";
+    recInstance.interimResults = false;
+    recInstance.maxAlternatives = 1;
+    recInstance.onresult = function (e) {
+      var transcript = e.results[0][0].transcript;
+      switchScreen("screenChat");
+      inputCmd.value = transcript;
+      autosizeInput();
+      inputCmd.focus();
+      addMessage("Sistem", "Suara dikenali: **" + esc(transcript) + "**. Tekan **Kirim** untuk menjalankan.", "system");
+    };
+    recInstance.onend = function () {
+      recListening = false;
+      btnVoice.textContent = "Input Suara";
+      btnVoiceQuick.textContent = "🎤";
+    };
+    recInstance.onerror = function () {
+      recListening = false;
+      btnVoice.textContent = "Input Suara";
+      btnVoiceQuick.textContent = "🎤";
+      switchScreen("screenChat");
+      addMessage("Sistem", "Input suara tidak dapat menangkap audio. Periksa izin mikrofon pada Windows/browser.", "system");
+    };
+  }
+
+  function triggerVoiceInput() {
+    switchScreen("screenChat");
+    if (!SR) {
+      inputCmd.value = "Ambil screenshot dan verifikasi";
+      autosizeInput();
+      inputCmd.focus();
+      addMessage(
+        "Sistem",
+        "WebView/browser saat ini tidak menyediakan modul Web Speech API. Contoh perintah telah dimasukkan ke kotak ketik—silakan sesuaikan lalu tekan **Kirim**.",
+        "system"
+      );
+      return;
+    }
+    if (!window.isSecureContext && location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
+      addMessage(
+        "Sistem",
+        "Mikrofon memerlukan koneksi `127.0.0.1` atau HTTPS. Buka JURU melalui `[http://127.0.0.1:8787](http://127.0.0.1:8787)` untuk mendikte perintah suara.",
+        "system"
+      );
+      return;
+    }
+    if (recListening) {
+      recInstance.stop();
+      return;
+    }
+    try {
+      recInstance.start();
+      recListening = true;
+      btnVoice.textContent = "Mendengarkan...";
+      btnVoiceQuick.textContent = "⏹";
+    } catch (e) {
+      addMessage("Sistem", "Mikrofon sedang sibuk atau belum diizinkan.", "system");
+    }
+  }
+
+  btnVoice.addEventListener("click", triggerVoiceInput);
+  btnVoiceQuick.addEventListener("click", triggerVoiceInput);
+
+  /* Tombol Diagnostik State (Kosong / Loading / Error / Pulihkan) */
+  document.getElementById("btnSimEmpty").addEventListener("click", function () {
+    showChatEmpty();
+    loadHistory("empty");
+    loadTasks("empty");
+    switchScreen("screenChat");
+  });
+
+  document.getElementById("btnSimLoading").addEventListener("click", function () {
+    chatBox.innerHTML = '<div class="state-box loading">Memuat riwayat percakapan dan status agen...</div>';
+    loadHistory("loading");
+    loadTasks("loading");
+    switchScreen("screenChat");
+  });
+
+  document.getElementById("btnSimError").addEventListener("click", function () {
+    chatBox.innerHTML =
+      '<div class="state-box error">' +
+      "Gagal memuat percakapan dari penyimpanan lokal." +
+      '<div class="state-actions"><button type="button" id="btnRestoreFromErr">Muat ulang percakapan</button></div>' +
+      "</div>";
+    document.getElementById("btnRestoreFromErr").addEventListener("click", function () {
+      renderLocalConvo(convoId);
+    });
+    loadHistory("error");
+    loadTasks("error");
+    switchScreen("screenChat");
+  });
+
+  document.getElementById("btnSimNormal").addEventListener("click", function () {
+    renderLocalConvo(convoId);
+    loadHistory();
+    loadTasks();
+    switchScreen("screenChat");
+  });
+
+  /* Form Input & Autosize Textarea */
+  function autosizeInput() {
+    inputCmd.style.height = "auto";
+    inputCmd.style.height = Math.min(inputCmd.scrollHeight, 110) + "px";
+  }
+
+  inputCmd.addEventListener("input", autosizeInput);
+  inputCmd.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      chatForm.requestSubmit();
+    }
+  });
+
+  chatForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var val = inputCmd.value.trim();
+    if (!val) return;
+    inputCmd.value = "";
+    autosizeInput();
+    send(val);
+    inputCmd.focus();
+  });
+
+  document.querySelectorAll("[data-cmd]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      send(btn.getAttribute("data-cmd"));
+    });
+  });
+
+  function updateBadges() {
+    document.getElementById("badgeJejak").textContent = String(localHistory.length);
+    document.getElementById("badgeJadwal").textContent = String(localTasks.length);
+  }
+
+  /* Pemantauan Berkala Status Live (/api/progress) */
+  setInterval(async function () {
+    if (!backendOnline || ctl) return;
+    try {
+      var r = await fetch("/api/progress", { cache: "no-store" });
+      var j = await r.json();
+      if (j && j.active && (j.steps || []).length) {
+        liveStepTxt.textContent = j.steps[j.steps.length - 1];
+        liveBanner.classList.add("open");
+      } else {
+        liveBanner.classList.remove("open");
+      }
+    } catch (e) {}
+  }, 3000);
+
+  /* Inisialisasi Saat Aplikasi Dibuka */
+  var defaultDate = new Date(Date.now() + 3600 * 1000);
+  defaultDate.setMinutes(defaultDate.getMinutes() - defaultDate.getTimezoneOffset());
+  taskAt.value = defaultDate.toISOString().slice(0, 16);
+
+  updateBadges();
+  loadConvos();
+  renderLocalConvo(convoId);
+  checkHealth(false);
+  loadUI();
+  setInterval(function () { checkHealth(false); }, 15000);
+})();
+</script>
+</body>
+</html>
