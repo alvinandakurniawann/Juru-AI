@@ -1,0 +1,17 @@
+# Secrets — jangan pernah di-commit
+usb-drive/config/.env
+
+# Runtime data (dibuat ulang agent saat berjalan)
+usb-drive/data/
+
+# Bytecode Python
+__pycache__/
+*.py[co]
+
+# Artefak build portable EXE
+*.exe
+dev-only/build/_pyinstaller/
+dev-only/build/dist/
+
+# Sistem
+Thumbs.db
