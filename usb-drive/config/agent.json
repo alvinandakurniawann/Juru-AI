@@ -1,0 +1,10 @@
+{
+  "model": "deepseek-flash",
+  "models": {"main": "deepseek-flash", "safeguard": "deepseek-flash"},
+  "plan_timeout": 60,
+  "plan_max_tokens": 800,
+  "ask_max_tokens": 800,
+  "vision_detail": "low",
+  "max_retry": 2,
+  "scheduler_tick": 20
+}
