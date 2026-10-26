@@ -15,3 +15,6 @@ dev-only/build/dist/
 
 # Sistem
 Thumbs.db
+
+# Helper lokal (URL repo personal, jangan di-commit)
+push-juru.bat
